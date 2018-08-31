@@ -57,7 +57,9 @@ git checkout master
 ### Build the source code to produce binary executables:
 ```
 cd ZeroClassic
-chmod +x zcutil/build.sh zcutil/fetch-params.sh depends/config.guess depends/config.sub autogen.sh share/genbuild.sh src/leveldb/build_detect_platform
+chmod +x zcutil/build.sh zcutil/fetch-params.sh depends/config.guess depends/config.sub autogen.sh share/genbuild.sh 
+./zcutil/fetch-params.sh
+src/leveldb/build_detect_platform
 ./zcutil/build.sh --disable-rust -j$(nproc)
 ```
 On a typical laptop -j3 works fine, while retaining some UI interactivity
@@ -71,13 +73,15 @@ mkdir -p ~/.zero
 echo "rpcuser=YOUR_USER" > ~/.zero/zero.conf
 echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zero/zero.conf
 echo "rpcport=23800" >> ~/.zero/zero.conf
+echo "addnode=163.172.49.214" >> ~/.zero/zero.conf
+echo "addnode=95.179.141.123" >> ~/.zero/zero.conf
 ```
 
 ### Seeder Nodes
 As of 05/12/2018 the following seeder nodes are up and run a recent Linux version:
 ```
 addnode=163.172.49.214
-addnode=
+addnode=95.179.141.123
 addnode=
 ```
 
