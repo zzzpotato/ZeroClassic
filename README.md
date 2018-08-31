@@ -75,6 +75,7 @@ echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zero/zero.conf
 echo "rpcport=23800" >> ~/.zero/zero.conf
 echo "addnode=163.172.49.214" >> ~/.zero/zero.conf
 echo "addnode=95.179.141.123" >> ~/.zero/zero.conf
+echo "addnode=173.249.40.205" >> ~/.zero/zero.conf
 ```
 
 ### Seeder Nodes
@@ -82,7 +83,7 @@ As of 05/12/2018 the following seeder nodes are up and run a recent Linux versio
 ```
 addnode=163.172.49.214
 addnode=95.179.141.123
-addnode=
+addnode=173.249.40.205
 ```
 
 ### Enable CPU mining (optional)
