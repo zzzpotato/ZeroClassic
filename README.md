@@ -14,8 +14,8 @@ On September 15th, the old ZERO will fork to add block halving and dev fees. Thi
 What should I do if I already own some coins?
 -----------------
 Zero will then have two chains:
-- MAIN CHAIN --> the one for users who will update their wallet
-- SIDE CHAIN --> the one who decided to keep their wallet as it was
+- MAIN CHAIN --> the one for users who will update their wallet and support dev fees
+- OUR OLD FASHIONED CHAIN --> for who decided to keep their wallet as it was
 
 Coins existing on the initial chain, before 15th of September, will continue to exists in both chains. Then, every fork will continue on his own. Even your receiving adresses.
 
