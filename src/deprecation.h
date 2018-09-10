@@ -1,9 +1,9 @@
-// Copyright (c) 2017 The Zcash developers
+// Copyright (c) 2017 The Zero developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZCASH_DEPRECATION_H
-#define ZCASH_DEPRECATION_H
+#ifndef ZERO_DEPRECATION_H
+#define ZERO_DEPRECATION_H
 
 // Deprecation policy:
 // * Shut down 52 weeks' worth of blocks after the estimated release block height.
@@ -24,4 +24,4 @@ static const int DEPRECATION_WARN_LIMIT = 28 * 24 * 30; // 4 weeks
  */
 void EnforceNodeDeprecation(int nHeight, bool forceLogging=false);
 
-#endif // ZCASH_DEPRECATION_H
+#endif // ZERO_DEPRECATION_H

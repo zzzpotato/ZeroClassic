@@ -6,26 +6,26 @@ DATADIR=./benchmark-datadir
 SHA256CMD="$(command -v sha256sum || echo shasum)"
 SHA256ARGS="$(command -v sha256sum >/dev/null || echo '-a 256')"
 
-function zcash_rpc {
-    ./src/zcash-cli -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 "$@"
+function zero_rpc {
+    ./src/zero-cli -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 "$@"
 }
 
-function zcash_rpc_slow {
+function zero_rpc_slow {
     # Timeout of 1 hour
-    zcash_rpc -rpcclienttimeout=3600 "$@"
+    zero_rpc -rpcclienttimeout=3600 "$@"
 }
 
-function zcash_rpc_veryslow {
+function zero_rpc_veryslow {
     # Timeout of 2.5 hours
-    zcash_rpc -rpcclienttimeout=9000 "$@"
+    zero_rpc -rpcclienttimeout=9000 "$@"
 }
 
-function zcash_rpc_wait_for_start {
-    zcash_rpc -rpcwait getinfo > /dev/null
+function zero_rpc_wait_for_start {
+    zero_rpc -rpcwait getinfo > /dev/null
 }
 
-function zcashd_generate {
-    zcash_rpc generate 101 > /dev/null
+function zerod_generate {
+    zero_rpc generate 101 > /dev/null
 }
 
 function extract_benchmark_datadir {
@@ -40,7 +40,7 @@ EOF
         ARCHIVE_RESULT=1
     fi
     if [ $ARCHIVE_RESULT -ne 0 ]; then
-        zcashd_stop
+        zerod_stop
         echo
         echo "Please download it and place it in the base directory of the repository."
         exit 1
@@ -54,7 +54,7 @@ function use_200k_benchmark {
     DATADIR="./benchmark-200k-UTXOs/node$1"
 }
 
-function zcashd_start {
+function zerod_start {
     case "$1" in
         sendtoaddress|loadwallet|listunspent)
             case "$2" in
@@ -65,26 +65,26 @@ function zcashd_start {
                     use_200k_benchmark 1
                     ;;
                 *)
-                    echo "Bad arguments to zcashd_start."
+                    echo "Bad arguments to zerod_start."
                     exit 1
             esac
             ;;
         *)
             rm -rf "$DATADIR"
             mkdir -p "$DATADIR/regtest"
-            touch "$DATADIR/zcash.conf"
+            touch "$DATADIR/zero.conf"
     esac
-    ./src/zcashd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
-    ZCASHD_PID=$!
-    zcash_rpc_wait_for_start
+    ./src/zerod -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    ZEROD_PID=$!
+    zero_rpc_wait_for_start
 }
 
-function zcashd_stop {
-    zcash_rpc stop > /dev/null
-    wait $ZCASHD_PID
+function zerod_stop {
+    zero_rpc stop > /dev/null
+    wait $ZEROD_PID
 }
 
-function zcashd_massif_start {
+function zerod_massif_start {
     case "$1" in
         sendtoaddress|loadwallet|listunspent)
             case "$2" in
@@ -95,40 +95,40 @@ function zcashd_massif_start {
                     use_200k_benchmark 1
                     ;;
                 *)
-                    echo "Bad arguments to zcashd_massif_start."
+                    echo "Bad arguments to zerod_massif_start."
                     exit 1
             esac
             ;;
         *)
             rm -rf "$DATADIR"
             mkdir -p "$DATADIR/regtest"
-            touch "$DATADIR/zcash.conf"
+            touch "$DATADIR/zero.conf"
     esac
     rm -f massif.out
-    valgrind --tool=massif --time-unit=ms --massif-out-file=massif.out ./src/zcashd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
-    ZCASHD_PID=$!
-    zcash_rpc_wait_for_start
+    valgrind --tool=massif --time-unit=ms --massif-out-file=massif.out ./src/zerod -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    ZEROD_PID=$!
+    zero_rpc_wait_for_start
 }
 
-function zcashd_massif_stop {
-    zcash_rpc stop > /dev/null
-    wait $ZCASHD_PID
+function zerod_massif_stop {
+    zero_rpc stop > /dev/null
+    wait $ZEROD_PID
     ms_print massif.out
 }
 
-function zcashd_valgrind_start {
+function zerod_valgrind_start {
     rm -rf "$DATADIR"
     mkdir -p "$DATADIR"
     touch "$DATADIR/zero.conf"
     rm -f valgrind.out
-    valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/zcashd -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
-    ZCASHD_PID=$!
-    zcash_rpc_wait_for_start
+    valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/zerod -regtest -datadir="$DATADIR" -rpcuser=user -rpcpassword=password -rpcport=5983 -showmetrics=0 &
+    ZEROD_PID=$!
+    zero_rpc_wait_for_start
 }
 
-function zcashd_valgrind_stop {
-    zcash_rpc stop > /dev/null
-    wait $ZCASHD_PID
+function zerod_valgrind_stop {
+    zero_rpc stop > /dev/null
+    wait $ZEROD_PID
     cat valgrind.out
 }
 
@@ -144,9 +144,9 @@ EOF
         ARCHIVE_RESULT=1
     fi
     if [ $ARCHIVE_RESULT -ne 0 ]; then
-        zcashd_stop
+        zerod_stop
         echo
-        echo "Please generate it using qa/zcash/create_benchmark_archive.py"
+        echo "Please generate it using qa/zero/create_benchmark_archive.py"
         echo "and place it in the base directory of the repository."
         echo "Usage details are inside the Python script."
         exit 1
@@ -166,158 +166,158 @@ case "$1" in
     *)
         case "$2" in
             verifyjoinsplit)
-                zcashd_start "${@:2}"
-                RAWJOINSPLIT=$(zcash_rpc zcsamplejoinsplit)
-                zcashd_stop
+                zerod_start "${@:2}"
+                RAWJOINSPLIT=$(zero_rpc zcsamplejoinsplit)
+                zerod_stop
         esac
 esac
 
 case "$1" in
     time)
-        zcashd_start "${@:2}"
+        zerod_start "${@:2}"
         case "$2" in
             sleep)
-                zcash_rpc zcbenchmark sleep 10
+                zero_rpc zcbenchmark sleep 10
                 ;;
             parameterloading)
-                zcash_rpc zcbenchmark parameterloading 10
+                zero_rpc zcbenchmark parameterloading 10
                 ;;
             createjoinsplit)
-                zcash_rpc zcbenchmark createjoinsplit 10 "${@:3}"
+                zero_rpc zcbenchmark createjoinsplit 10 "${@:3}"
                 ;;
             verifyjoinsplit)
-                zcash_rpc zcbenchmark verifyjoinsplit 1000 "\"$RAWJOINSPLIT\""
+                zero_rpc zcbenchmark verifyjoinsplit 1000 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                zcash_rpc_slow zcbenchmark solveequihash 50 "${@:3}"
+                zero_rpc_slow zcbenchmark solveequihash 50 "${@:3}"
                 ;;
             verifyequihash)
-                zcash_rpc zcbenchmark verifyequihash 1000
+                zero_rpc zcbenchmark verifyequihash 1000
                 ;;
             validatelargetx)
-                zcash_rpc zcbenchmark validatelargetx 5
+                zero_rpc zcbenchmark validatelargetx 5
                 ;;
             trydecryptnotes)
-                zcash_rpc zcbenchmark trydecryptnotes 1000 "${@:3}"
+                zero_rpc zcbenchmark trydecryptnotes 1000 "${@:3}"
                 ;;
             incnotewitnesses)
-                zcash_rpc zcbenchmark incnotewitnesses 100 "${@:3}"
+                zero_rpc zcbenchmark incnotewitnesses 100 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                zcash_rpc zcbenchmark connectblockslow 10
+                zero_rpc zcbenchmark connectblockslow 10
                 ;;
             sendtoaddress)
-                zcash_rpc zcbenchmark sendtoaddress 10 "${@:4}"
+                zero_rpc zcbenchmark sendtoaddress 10 "${@:4}"
                 ;;
             loadwallet)
-                zcash_rpc zcbenchmark loadwallet 10 
+                zero_rpc zcbenchmark loadwallet 10 
                 ;;
             listunspent)
-                zcash_rpc zcbenchmark listunspent 10
+                zero_rpc zcbenchmark listunspent 10
                 ;;
             *)
-                zcashd_stop
+                zerod_stop
                 echo "Bad arguments to time."
                 exit 1
         esac
-        zcashd_stop
+        zerod_stop
         ;;
     memory)
-        zcashd_massif_start "${@:2}"
+        zerod_massif_start "${@:2}"
         case "$2" in
             sleep)
-                zcash_rpc zcbenchmark sleep 1
+                zero_rpc zcbenchmark sleep 1
                 ;;
             parameterloading)
-                zcash_rpc zcbenchmark parameterloading 1
+                zero_rpc zcbenchmark parameterloading 1
                 ;;
             createjoinsplit)
-                zcash_rpc_slow zcbenchmark createjoinsplit 1 "${@:3}"
+                zero_rpc_slow zcbenchmark createjoinsplit 1 "${@:3}"
                 ;;
             verifyjoinsplit)
-                zcash_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
+                zero_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                zcash_rpc_slow zcbenchmark solveequihash 1 "${@:3}"
+                zero_rpc_slow zcbenchmark solveequihash 1 "${@:3}"
                 ;;
             verifyequihash)
-                zcash_rpc zcbenchmark verifyequihash 1
+                zero_rpc zcbenchmark verifyequihash 1
                 ;;
             validatelargetx)
-                zcash_rpc zcbenchmark validatelargetx 1
+                zero_rpc zcbenchmark validatelargetx 1
                 ;;
             trydecryptnotes)
-                zcash_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
+                zero_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
                 ;;
             incnotewitnesses)
-                zcash_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
+                zero_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                zcash_rpc zcbenchmark connectblockslow 1
+                zero_rpc zcbenchmark connectblockslow 1
                 ;;
             sendtoaddress)
-                zcash_rpc zcbenchmark sendtoaddress 1 "${@:4}"
+                zero_rpc zcbenchmark sendtoaddress 1 "${@:4}"
                 ;;
             loadwallet)
                 # The initial load is sufficient for measurement
                 ;;
             listunspent)
-                zcash_rpc zcbenchmark listunspent 1
+                zero_rpc zcbenchmark listunspent 1
                 ;;
             *)
-                zcashd_massif_stop
+                zerod_massif_stop
                 echo "Bad arguments to memory."
                 exit 1
         esac
-        zcashd_massif_stop
+        zerod_massif_stop
         rm -f massif.out
         ;;
     valgrind)
-        zcashd_valgrind_start
+        zerod_valgrind_start
         case "$2" in
             sleep)
-                zcash_rpc zcbenchmark sleep 1
+                zero_rpc zcbenchmark sleep 1
                 ;;
             parameterloading)
-                zcash_rpc zcbenchmark parameterloading 1
+                zero_rpc zcbenchmark parameterloading 1
                 ;;
             createjoinsplit)
-                zcash_rpc_veryslow zcbenchmark createjoinsplit 1 "${@:3}"
+                zero_rpc_veryslow zcbenchmark createjoinsplit 1 "${@:3}"
                 ;;
             verifyjoinsplit)
-                zcash_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
+                zero_rpc zcbenchmark verifyjoinsplit 1 "\"$RAWJOINSPLIT\""
                 ;;
             solveequihash)
-                zcash_rpc_veryslow zcbenchmark solveequihash 1 "${@:3}"
+                zero_rpc_veryslow zcbenchmark solveequihash 1 "${@:3}"
                 ;;
             verifyequihash)
-                zcash_rpc zcbenchmark verifyequihash 1
+                zero_rpc zcbenchmark verifyequihash 1
                 ;;
             trydecryptnotes)
-                zcash_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
+                zero_rpc zcbenchmark trydecryptnotes 1 "${@:3}"
                 ;;
             incnotewitnesses)
-                zcash_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
+                zero_rpc zcbenchmark incnotewitnesses 1 "${@:3}"
                 ;;
             connectblockslow)
                 extract_benchmark_data
-                zcash_rpc zcbenchmark connectblockslow 1
+                zero_rpc zcbenchmark connectblockslow 1
                 ;;
             *)
-                zcashd_valgrind_stop
+                zerod_valgrind_stop
                 echo "Bad arguments to valgrind."
                 exit 1
         esac
-        zcashd_valgrind_stop
+        zerod_valgrind_stop
         rm -f valgrind.out
         ;;
     valgrind-tests)
         case "$2" in
             gtest)
                 rm -f valgrind.out
-                valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/zcash-gtest
+                valgrind --leak-check=yes -v --error-limit=no --log-file="valgrind.out" ./src/zero-gtest
                 cat valgrind.out
                 rm -f valgrind.out
                 ;;

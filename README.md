@@ -1,8 +1,8 @@
 
 ![Alt text](https://github.com/LEAD-Anoy74/ZeroClassic/blob/master/art/zero_icon.png?raw=true "ZeroClassic")
 
-[ZERC](https://github.com/LEAD-Anoy74/ZeroClassic) is a fork of ZeroCurrency and Zcash.
-Zcash is a fork of Bitcoin that adds shielded transaction via zk-SNARKs.
+[ZERC](https://github.com/LEAD-Anoy74/ZeroClassic) is a fork of ZeroCurrency and Zero.
+Zero is a fork of Bitcoin that adds shielded transaction via zk-SNARKs.
 
 This software is the ZERO Classic node. It downloads and stores the entire history of ZERO Classic transactions, about 1GB at this point.
 Depending on the speed of your computer and network connection, the synchronization process could take several hours.
@@ -109,4 +109,4 @@ After a successful build ZERO Classic binaries are in `./src`. The two important
 Your wallet will be created (on first zerod run) in: ~/.zero/wallet.zero
 Please backup your wallet often and keep it safe.
 
-The usage is currently the same ZCash. For more information see the [ZCash User Guide](https://github.com/zcash/zcash/wiki/1.0-User-Guide#running-zcash).
+The usage is currently the same ZCash. For more information see the [ZCash User Guide](https://github.com/zero/zero/wiki/1.0-User-Guide#running-zero).

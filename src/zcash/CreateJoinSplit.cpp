@@ -1,14 +1,14 @@
-// Copyright (c) 2016 The Zcash developers
+// Copyright (c) 2016 The Zero developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "../util.h"
 #include "primitives/transaction.h"
-#include "zcash/JoinSplit.hpp"
+#include "zero/JoinSplit.hpp"
 
 #include <libsnark/common/profiling.hpp>
 
-using namespace libzcash;
+using namespace libzero;
 
 int main(int argc, char **argv)
 {

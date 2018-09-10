@@ -1,5 +1,5 @@
-Building Zcash
+Building Zero
 
-See the Zcash github wiki (https://github.com/zcash/zcash/wiki) for instructions on building zcashd,
+See the Zero github wiki (https://github.com/zero/zero/wiki) for instructions on building zerod,
 the intended-for-services, no-graphical-interface, reference
-implementation of Zcash.
+implementation of Zero.

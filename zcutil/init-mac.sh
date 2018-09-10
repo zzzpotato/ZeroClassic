@@ -4,9 +4,9 @@ set -eu
 
 # Need to be verified before changing to Zen...
 if [[ "$OSTYPE" == "darwin"* ]]; then
-    PARAMS_DIR="$HOME/Library/Application Support/ZcashParams"
+    PARAMS_DIR="$HOME/Library/Application Support/ZeroParams"
 else
-    PARAMS_DIR="$HOME/.zcash-params"
+    PARAMS_DIR="$HOME/.zero-params"
 fi
 
 SPROUT_PKEY_NAME='sprout-proving.key'
@@ -84,10 +84,10 @@ function main() {
     || exit_locked_error
 
     cat <<EOF
-# Not changed to Zen because we're still using the Zcash zcSNARK params
-Zcash - fetch-params.sh
+# Not changed to Zen because we're still using the Zero zcSNARK params
+Zero - fetch-params.sh
 
-This script will fetch the Zcash zkSNARK parameters and verify their
+This script will fetch the Zero zkSNARK parameters and verify their
 integrity with sha256sum.
 
 If they already exist locally, it will exit now and do nothing else.
@@ -99,7 +99,7 @@ EOF
         mkdir -p "$PARAMS_DIR"
         README_PATH="$PARAMS_DIR/README"
         cat >> "$README_PATH" <<EOF
-This directory stores common Zcash zkSNARK parameters. Note that it is
+This directory stores common Zero zkSNARK parameters. Note that it is
 distinct from the daemon's -datadir argument because the parameters are
 large and may be shared across multiple distinct -datadir's such as when
 setting up test networks.

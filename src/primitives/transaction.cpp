@@ -12,15 +12,15 @@
 JSDescription::JSDescription(ZCJoinSplit& params,
             const uint256& pubKeyHash,
             const uint256& anchor,
-            const boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            const boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+            const boost::array<libzero::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+            const boost::array<libzero::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
             CAmount vpub_old,
             CAmount vpub_new,
             bool computeProof,
             uint256 *esk // payment disclosure
             ) : vpub_old(vpub_old), vpub_new(vpub_new), anchor(anchor)
 {
-    boost::array<libzcash::Note, ZC_NUM_JS_OUTPUTS> notes;
+    boost::array<libzero::Note, ZC_NUM_JS_OUTPUTS> notes;
 
     proof = params.prove(
         inputs,
@@ -45,8 +45,8 @@ JSDescription JSDescription::Randomized(
             ZCJoinSplit& params,
             const uint256& pubKeyHash,
             const uint256& anchor,
-            boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
-            boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+            boost::array<libzero::JSInput, ZC_NUM_JS_INPUTS>& inputs,
+            boost::array<libzero::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
             #ifdef __LP64__ // required to build on MacOS due to size_t ambiguity errors
             boost::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
             boost::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
@@ -79,7 +79,7 @@ JSDescription JSDescription::Randomized(
 
 bool JSDescription::Verify(
     ZCJoinSplit& params,
-    libzcash::ProofVerifier& verifier,
+    libzero::ProofVerifier& verifier,
     const uint256& pubKeyHash
 ) const {
     return params.verify(

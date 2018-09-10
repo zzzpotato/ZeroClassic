@@ -1,4 +1,4 @@
-Zcash Contributors
+Zero Contributors
 ==================
 
 Jack Grigg (558)
