@@ -33,7 +33,7 @@ is an automatic deprecation shutdown feature which will halt the node some
 time after this 26 week time period. The automatic feature is based on block
 height and can be explicitly disabled.
 
-Building
+Building (16.04.5 LTS (Xenial Xerus))
 --------
 Currently only Linux build is officially supported.  8GB RAM is recommended.
 
