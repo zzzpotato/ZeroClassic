@@ -59,7 +59,6 @@ git checkout master
 cd ZeroClassic
 chmod +x src/leveldb/build_detect_platform zcutil/build.sh zcutil/fetch-params.sh depends/config.guess depends/config.sub autogen.sh share/genbuild.sh 
 ./zcutil/fetch-params.sh
-
 ./zcutil/build.sh --disable-rust -j$(nproc)
 ```
 On a typical laptop -j3 works fine, while retaining some UI interactivity
@@ -76,6 +75,7 @@ echo "rpcport=23800" >> ~/.zero/zero.conf
 echo "addnode=163.172.49.214" >> ~/.zero/zero.conf
 echo "addnode=95.179.141.123" >> ~/.zero/zero.conf
 echo "addnode=173.249.40.205" >> ~/.zero/zero.conf
+echo "addnode=149.56.97.170" >> ~/.zero/zero.conf
 ```
 
 ### Seeder Nodes
@@ -84,6 +84,7 @@ As of 05/12/2018 the following seeder nodes are up and run a recent Linux versio
 addnode=163.172.49.214
 addnode=95.179.141.123
 addnode=173.249.40.205
+addnode=149.56.97.170
 ```
 
 ### Enable CPU mining (optional)
