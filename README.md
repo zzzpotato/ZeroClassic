@@ -76,6 +76,7 @@ echo "addnode=163.172.49.214" >> ~/.zero/zero.conf
 echo "addnode=95.179.141.123" >> ~/.zero/zero.conf
 echo "addnode=173.249.40.205" >> ~/.zero/zero.conf
 echo "addnode=149.56.97.170" >> ~/.zero/zero.conf
+echo "addnode=173.212.214.174" >> ~/.zero/zero.conf
 ```
 
 ### Seeder Nodes
@@ -85,6 +86,7 @@ addnode=163.172.49.214
 addnode=95.179.141.123
 addnode=173.249.40.205
 addnode=149.56.97.170
+addnode=173.212.214.174
 ```
 
 ### Enable CPU mining (optional)

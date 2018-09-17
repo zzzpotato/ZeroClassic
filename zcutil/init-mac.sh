@@ -137,8 +137,11 @@ if [ ! -f "$HOME/Library/Application Support/zero/zero.conf" ]; then
     echo "rpcport=23800" >> ~/Library/Application\ Support/zero/zero.conf
     echo "port=23801" >> ~/Library/Application\ Support/zero/zero.conf
     echo "txindex=1" >> ~/Library/Application\ Support/zero/zero.conf
-    echo "addnode=zeroseed.cryptoforge.cc:23801" >> ~/Library/Application\ Support/zero/zero.conf
-    echo "addnode=34.236.37.74:23801" >> ~/Library/Application\ Support/zero/zero.conf
+    echo "addnode=163.172.49.214" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=95.179.141.123" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=173.249.40.205" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=149.56.97.170" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=173.212.214.174" >> ~/Library/Application\ Support/zero/zero.conf
     echo "server=1" >> ~/Library/Application\ Support/zero/zero.conf
     echo "Complete!"
 fi
