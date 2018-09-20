@@ -447,10 +447,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Windows < Vista: C:\Documents and Settings\Username\Application Data\zero
     // Windows >= Vista: C:\Users\Username\AppData\Roaming\zero
     // Mac: ~/Library/Application Support/zero
-    // Unix: ~/.zero
+    // Unix: ~/.zeroclassic
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "zero";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "zeroclassic";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -462,10 +462,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "zero";
+    return pathRet / "zeroclassic";
 #else
     // Unix
-    return pathRet / ".zero";
+    return pathRet / ".zeroclassic";
 #endif
 #endif
 }
