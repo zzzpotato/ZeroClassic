@@ -423,7 +423,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "Zero";
+    const char* pszModule = "ZeroClassic";
 #endif
     if (pex)
         return strprintf(
@@ -444,13 +444,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\zero
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\zero
-    // Mac: ~/Library/Application Support/zero
-    // Unix: ~/.zero
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZeroClassic
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZeroClassic
+    // Mac: ~/Library/Application Support/ZeroClassic
+    // Unix: ~/.zeroclassic
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "zero";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "ZeroClassic";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -462,10 +462,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "zero";
+    return pathRet / "ZeroClassic";
 #else
     // Unix
-    return pathRet / ".zero";
+    return pathRet / ".zeroclassic";
 #endif
 #endif
 }

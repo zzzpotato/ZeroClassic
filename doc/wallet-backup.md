@@ -16,7 +16,7 @@ These instructions are specific for the officially supported Zero Linux client. 
 
 There are multiple ways to make sure you have at least one other copy of the private keys needed to spend your ZEC and view your shielded ZEC.
 
-For all methods, you will need to include an export directory setting in your config file (`zero.conf` located in the data directory which is `~/.zero/` unless it's been overridden with `datadir=` setting):
+For all methods, you will need to include an export directory setting in your config file (`zero.conf` located in the data directory which is `~/.zeroclassic/` unless it's been overridden with `datadir=` setting):
 
 `exportdir=/path/to/chosen/export/directory`
 
