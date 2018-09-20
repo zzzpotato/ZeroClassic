@@ -4,7 +4,7 @@
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #
 ZERO_LOAD_TIMEOUT=500
-DATADIR="@abs_top_builddir@/.zero"
+DATADIR="@abs_top_builddir@/.zeroclassic"
 rm -rf "$DATADIR"
 mkdir -p "$DATADIR"/regtest
 touch "$DATADIR/zero.conf"

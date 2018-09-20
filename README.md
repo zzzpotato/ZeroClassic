@@ -68,15 +68,15 @@ On a typical laptop -j3 works fine, while retaining some UI interactivity
 
 ### Create a ZERO Classic configuration file
 ```
-mkdir -p ~/.zero
-echo "rpcuser=YOUR_USER" > ~/.zero/zero.conf
-echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zero/zero.conf
-echo "rpcport=23800" >> ~/.zero/zero.conf
-echo "addnode=163.172.49.214" >> ~/.zero/zero.conf
-echo "addnode=95.179.141.123" >> ~/.zero/zero.conf
-echo "addnode=173.249.40.205" >> ~/.zero/zero.conf
-echo "addnode=149.56.97.170" >> ~/.zero/zero.conf
-echo "addnode=173.212.214.174" >> ~/.zero/zero.conf
+mkdir -p ~/.zeroclassic
+echo "rpcuser=YOUR_USER" > ~/.zeroclassic/zero.conf
+echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zeroclassic/zero.conf
+echo "rpcport=23800" >> ~/.zeroclassic/zero.conf
+echo "addnode=163.172.49.214" >> ~/.zeroclassic/zero.conf
+echo "addnode=95.179.141.123" >> ~/.zeroclassic/zero.conf
+echo "addnode=173.249.40.205" >> ~/.zeroclassic/zero.conf
+echo "addnode=149.56.97.170" >> ~/.zeroclassic/zero.conf
+echo "addnode=173.212.214.174" >> ~/.zeroclassic/zero.conf
 ```
 
 ### Seeder Nodes
@@ -91,9 +91,9 @@ addnode=173.212.214.174
 
 ### Enable CPU mining (optional)
 ```
-echo 'gen=1' >> ~/.zero/zero.conf
-echo "genproclimit=1" >> ~/.zero/zero.conf
-echo 'equihashsolver=tromp' >> ~/.zero/zero.conf
+echo 'gen=1' >> ~/.zeroclassic/zero.conf
+echo "genproclimit=1" >> ~/.zeroclassic/zero.conf
+echo 'equihashsolver=tromp' >> ~/.zeroclassic/zero.conf
 ```
 
 A sample of the current zero.conf
@@ -109,7 +109,7 @@ Running & Using ZERO Classic
 --------------------
 After a successful build ZERO Classic binaries are in `./src`. The two important binaries are `zerod` and `zero-cli`.
 
-Your wallet will be created (on first zerod run) in: ~/.zero/wallet.zero
+Your wallet will be created (on first zerod run) in: ~/.zeroclassic/wallet.zero
 Please backup your wallet often and keep it safe.
 
 The usage is currently the same ZCash. For more information see the [ZCash User Guide](https://github.com/zero/zero/wiki/1.0-User-Guide#running-zero).
