@@ -142,6 +142,8 @@ if [ ! -f "$HOME/Library/Application Support/zero/zero.conf" ]; then
 	echo "addnode=173.249.40.205" >> ~/Library/Application\ Support/zero/zero.conf
 	echo "addnode=149.56.97.170" >> ~/Library/Application\ Support/zero/zero.conf
 	echo "addnode=173.212.214.174" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=172.93.98.162" >> ~/Library/Application\ Support/zero/zero.conf
+	echo "addnode=51.68.153.137" >> ~/Library/Application\ Support/zero/zero.conf
     echo "server=1" >> ~/Library/Application\ Support/zero/zero.conf
     echo "Complete!"
 fi

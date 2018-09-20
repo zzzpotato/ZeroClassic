@@ -67,17 +67,7 @@ On a typical laptop -j3 works fine, while retaining some UI interactivity
 ```
 
 ### Create a ZERO Classic configuration file
-```
-mkdir -p ~/.zeroclassic
-echo "rpcuser=YOUR_USER" > ~/.zeroclassic/zero.conf
-echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zeroclassic/zero.conf
-echo "rpcport=23800" >> ~/.zeroclassic/zero.conf
-echo "addnode=163.172.49.214" >> ~/.zeroclassic/zero.conf
-echo "addnode=95.179.141.123" >> ~/.zeroclassic/zero.conf
-echo "addnode=173.249.40.205" >> ~/.zeroclassic/zero.conf
-echo "addnode=149.56.97.170" >> ~/.zeroclassic/zero.conf
-echo "addnode=173.212.214.174" >> ~/.zeroclassic/zero.conf
-```
+
 
 ### Seeder Nodes
 As of 05/12/2018 the following seeder nodes are up and run a recent Linux version:
@@ -87,6 +77,8 @@ addnode=95.179.141.123
 addnode=173.249.40.205
 addnode=149.56.97.170
 addnode=173.212.214.174
+addnode=172.93.98.162
+addnode=51.68.153.137
 ```
 
 ### Enable CPU mining (optional)
