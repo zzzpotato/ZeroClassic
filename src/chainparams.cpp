@@ -55,10 +55,10 @@ public:
         pchMessageStart[0] = 0x5A; // Z
         pchMessageStart[1] = 0x45; // E
         pchMessageStart[2] = 0x52; // R
-        pchMessageStart[3] = 0x4F; // O
+        pchMessageStart[3] = 0x43; // C
         vAlertPubKey = ParseHex("73B0");
         nDefaultPort = 23801;
-//        nMinerThreads = 0;
+//      nMinerThreads = 0;
 /*
         pchMessageStart[0] = 0x24;
         pchMessageStart[1] = 0xe9;
