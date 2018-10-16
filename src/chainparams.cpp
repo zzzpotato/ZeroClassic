@@ -105,6 +105,20 @@ public:
 
         vFixedSeeds.clear();
         vSeeds.clear();
+		
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed2.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed3.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed4.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed5.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed6.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed7.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed8.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed9.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed10.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed11.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed12.zeroclassic.org")); //ZeroClassic seed node
+		vSeeds.push_back(CDNSSeedData("zeroclassic.org", "seed13.zeroclassic.org")); //ZeroClassic seed node
 
         // guarantees the first 2 characters, when base58 encoded, are "t1"
         base58Prefixes[PUBKEY_ADDRESS]     = {0x1C,0xB8};
