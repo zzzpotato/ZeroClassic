@@ -53,6 +53,8 @@ extern bool fLogIPs;
 extern std::atomic<bool> fReopenDebugLog;
 extern CTranslationInterface translationInterface;
 
+[[noreturn]] extern void new_handler_terminate();
+
 /**
  * Translation function: Call Translate signal on UI interface, which returns a boost::optional result.
  * If no translation slot is registered, nothing is returned, and simply return the input.
@@ -128,9 +130,9 @@ boost::filesystem::path GetConfigFile();
 boost::filesystem::path GetPidFile();
 void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
 #endif
-class missing_zero_conf : public std::runtime_error {
+class missing_zcash_conf : public std::runtime_error {
 public:
-    missing_zero_conf() : std::runtime_error("Missing zero.conf") { }
+    missing_zcash_conf() : std::runtime_error("Missing zero.conf") { }
 };
 void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
 #ifdef WIN32
@@ -234,7 +236,7 @@ void RenameThread(const char* name);
  */
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("zero-%s", name);
+    std::string s = strprintf("zcash-%s", name);
     RenameThread(s.c_str());
     try
     {

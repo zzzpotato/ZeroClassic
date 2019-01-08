@@ -1,9 +1,9 @@
 // Equihash solver
-// Copyright (c) 2016 John Tromp, The Zero developers
+// Copyright (c) 2016 John Tromp, The Zcash developers
 
 // Fix N, K, such that n = N/(k+1) is integer
 // Fix M = 2^{n+1} hashes each of length N bits,
-// H_0, ... , H_{M-1}, generated fom (n+1)-bit indices.
+// H_0, ... , H_{M-1}, generated from (n+1)-bit indices.
 // Problem: find binary tree on 2^K distinct indices,
 // for which the exclusive-or of leaf hashes is all 0s.
 // Additionally, it should satisfy the Wagner conditions:
@@ -57,6 +57,7 @@ static const u32 NBUCKETS = 1<<BUCKBITS;
 // 2_log of number of slots per bucket
 static const u32 SLOTBITS = RESTBITS+1+1;
 static const u32 SLOTRANGE = 1<<SLOTBITS;
+static const u32 SLOTMSB = 1<<(SLOTBITS-1);
 // number of slots per bucket
 static const u32 NSLOTS = SLOTRANGE * SAVEMEM;
 // number of per-xhash slots
@@ -79,19 +80,40 @@ struct tree {
     bid_s0_s1 = idx;
   }
   tree(const u32 bid, const u32 s0, const u32 s1) {
+#ifdef SLOTDIFF
+    u32 ds10 = (s1 - s0) & SLOTMASK;
+    if (ds10 & SLOTMSB) {
+      bid_s0_s1 = (((bid << SLOTBITS) | s1) << (SLOTBITS-1)) | (SLOTMASK & ~ds10);
+    } else {
+      bid_s0_s1 = (((bid << SLOTBITS) | s0) << (SLOTBITS-1)) | (ds10 - 1);
+    }
+#else
     bid_s0_s1 = (((bid << SLOTBITS) | s0) << SLOTBITS) | s1;
+#endif
   }
   u32 getindex() const {
     return bid_s0_s1;
   }
   u32 bucketid() const {
+#ifdef SLOTDIFF
+    return bid_s0_s1 >> (2 * SLOTBITS - 1);
+#else
     return bid_s0_s1 >> (2 * SLOTBITS);
+#endif
   }
   u32 slotid0() const {
+#ifdef SLOTDIFF
+    return (bid_s0_s1 >> (SLOTBITS-1)) & SLOTMASK;
+#else
     return (bid_s0_s1 >> SLOTBITS) & SLOTMASK;
+#endif
   }
   u32 slotid1() const {
+#ifdef SLOTDIFF
+    return (slotid0() + 1 + (bid_s0_s1 & (SLOTMASK>>1))) & SLOTMASK;
+#else
     return bid_s0_s1 & SLOTMASK;
+#endif
   }
 };
 
@@ -350,7 +372,13 @@ struct equi {
   };
 
   struct collisiondata {
-
+#ifdef XBITMAP
+#if NSLOTS > 64
+#error cant use XBITMAP with more than 64 slots
+#endif
+    u64 xhashmap[NRESTS];
+    u64 xmap;
+#else
 #if RESTBITS <= 6
     typedef uchar xslot;
 #else
@@ -361,12 +389,23 @@ struct equi {
     xslot *xx;
     u32 n0;
     u32 n1;
+#endif
     u32 s0;
 
     void clear() {
+#ifdef XBITMAP
+      memset(xhashmap, 0, NRESTS * sizeof(u64));
+#else
       memset(nxhashslots, 0, NRESTS * sizeof(xslot));
+#endif
     }
     bool addslot(u32 s1, u32 xh) {
+#ifdef XBITMAP
+      xmap = xhashmap[xh];
+      xhashmap[xh] |= (u64)1 << s1;
+      s0 = -1;
+      return true;
+#else
       n1 = (u32)nxhashslots[xh]++;
       if (n1 >= XFULL)
         return false;
@@ -374,12 +413,23 @@ struct equi {
       xx[n1] = s1;
       n0 = 0;
       return true;
+#endif
     }
     bool nextcollision() const {
+#ifdef XBITMAP
+      return xmap != 0;
+#else
       return n0 < n1;
+#endif
     }
     u32 slot() {
+#ifdef XBITMAP
+      const u32 ffs = __builtin_ffsll(xmap);
+      s0 += ffs; xmap >>= ffs;
+      return s0;
+#else
       return (u32)xx[n0++];
+#endif
     }
   };
 

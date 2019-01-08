@@ -1,4 +1,4 @@
-// Copyright (c) 2016 The Zero developers
+// Copyright (c) 2016 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -16,7 +16,7 @@ using namespace std;
 
 static boost::uuids::random_generator uuidgen;
 
-std::map<OperationStatus, std::string> OperationStatusMap = {
+static std::map<OperationStatus, std::string> OperationStatusMap = {
     {OperationStatus::READY, "queued"},
     {OperationStatus::EXECUTING, "executing"},
     {OperationStatus::CANCELLED, "cancelled"},

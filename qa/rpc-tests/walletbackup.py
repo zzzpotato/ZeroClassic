@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # Copyright (c) 2014 The Bitcoin Core developers
 # Distributed under the MIT software license, see the accompanying
 # file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -26,12 +26,14 @@ Sanity check:
   Sum(1,2,3,4 balances) == 114*40
 
 1/2/3 are shutdown, and their wallets erased.
-Then restore using wallet.zero backup. And
+Then restore using wallet.dat backup. And
 confirm 1/2/3/4 balances are same as before.
 
 Shutdown again, restore using importwallet,
 and confirm again balances are correct.
 """
+
+import sys; assert sys.version_info < (3,), ur"This script does not run under Python 3. Please use Python 2.7.x."
 
 from test_framework.test_framework import BitcoinTestFramework
 from test_framework.authproxy import JSONRPCException
@@ -108,9 +110,9 @@ class WalletBackupTest(BitcoinTestFramework):
         stop_node(self.nodes[2], 2)
 
     def erase_three(self):
-        os.remove(self.options.tmpdir + "/node0/regtest/wallet.zero")
-        os.remove(self.options.tmpdir + "/node1/regtest/wallet.zero")
-        os.remove(self.options.tmpdir + "/node2/regtest/wallet.zero")
+        os.remove(self.options.tmpdir + "/node0/regtest/wallet.dat")
+        os.remove(self.options.tmpdir + "/node1/regtest/wallet.dat")
+        os.remove(self.options.tmpdir + "/node2/regtest/wallet.dat")
 
     def run_test(self):
         logging.info("Generating initial blockchain")
@@ -171,7 +173,7 @@ class WalletBackupTest(BitcoinTestFramework):
         ##
         # Test restoring spender wallets from backups
         ##
-        logging.info("Restoring using wallet.zero")
+        logging.info("Restoring using wallet.dat")
         self.stop_three()
         self.erase_three()
 
@@ -180,9 +182,9 @@ class WalletBackupTest(BitcoinTestFramework):
         shutil.rmtree(self.options.tmpdir + "/node2/regtest/chainstate")
 
         # Restore wallets from backup
-        shutil.copyfile(tmpdir + "/node0/walletbak", tmpdir + "/node0/regtest/wallet.zero")
-        shutil.copyfile(tmpdir + "/node1/walletbak", tmpdir + "/node1/regtest/wallet.zero")
-        shutil.copyfile(tmpdir + "/node2/walletbak", tmpdir + "/node2/regtest/wallet.zero")
+        shutil.copyfile(tmpdir + "/node0/walletbak", tmpdir + "/node0/regtest/wallet.dat")
+        shutil.copyfile(tmpdir + "/node1/walletbak", tmpdir + "/node1/regtest/wallet.dat")
+        shutil.copyfile(tmpdir + "/node2/walletbak", tmpdir + "/node2/regtest/wallet.dat")
 
         logging.info("Re-starting nodes")
         self.start_three()

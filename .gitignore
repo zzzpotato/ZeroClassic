@@ -4,16 +4,12 @@
 src/bitcoin
 src/zerod
 src/zero-cli
-src/zero-gtest
+src/zerc-gtest
 src/zero-tx
 src/test/test_bitcoin
 
-# Zero utilities
-src/zero/GenerateParams
-src/zero/CreateJoinSplit
-
-*zeroTest.pk
-*zeroTest.vk
+*zcashTest.pk
+*zcashTest.vk
 
 # autoreconf
 Makefile.in
@@ -56,7 +52,7 @@ src/univalue/gen
 *.pyc
 *.o
 *.o-*
-.zero
+.zcash
 *.a
 *.pb.cc
 *.pb.h
@@ -92,7 +88,7 @@ build
 *.gcda
 /*.info
 test_bitcoin.coverage/
-zero-gtest.coverage/
+zerc-gtest.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -109,7 +105,7 @@ qa/pull-tester/test.*/*
 
 /doc/doxygen/
 
-libzeroconsensus.pc
+libzcashconsensus.pc
 
 contrib/debian/files
 contrib/debian/substvars

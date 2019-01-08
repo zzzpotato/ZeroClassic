@@ -1,9 +1,9 @@
-// Copyright (c) 2017 The Zero developers
+// Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZERO_AMQP_AMQPCONFIG_H
-#define ZERO_AMQP_AMQPCONFIG_H
+#ifndef ZCASH_AMQP_AMQPCONFIG_H
+#define ZCASH_AMQP_AMQPCONFIG_H
 
 #if defined(HAVE_CONFIG_H)
 #include "config/bitcoin-config.h"
@@ -30,4 +30,4 @@
 #include "primitives/block.h"
 #include "primitives/transaction.h"
 
-#endif // ZERO_AMQP_AMQPCONFIG_H
+#endif // ZCASH_AMQP_AMQPCONFIG_H
