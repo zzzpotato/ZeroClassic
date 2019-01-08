@@ -17,6 +17,7 @@
 #include "utiltime.h"
 
 #include <stdarg.h>
+#include <stdio.h>
 
 #if (defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__DragonFly__))
 #include <pthread.h>
@@ -124,7 +125,7 @@ void locking_callback(int mode, int i, const char* file, int line) NO_THREAD_SAF
 }
 
 // Init
-class CInit
+static class CInit
 {
 public:
     CInit()
@@ -178,6 +179,20 @@ static boost::once_flag debugPrintInitFlag = BOOST_ONCE_INIT;
 static FILE* fileout = NULL;
 static boost::mutex* mutexDebugLog = NULL;
 static list<string> *vMsgsBeforeOpenLog;
+
+[[noreturn]] void new_handler_terminate()
+{
+    // Rather than throwing std::bad-alloc if allocation fails, terminate
+    // immediately to (try to) avoid chain corruption.
+    // Since LogPrintf may itself allocate memory, set the handler directly
+    // to terminate first.
+    std::set_new_handler(std::terminate);
+    fputs("Error: Out of memory. Terminating.\n", stderr);
+    LogPrintf("Error: Out of memory. Terminating.\n");
+
+    // The log was successful, terminate now.
+    std::terminate();
+};
 
 static int FileWriteStr(const std::string &str, FILE *fp)
 {
@@ -444,13 +459,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZeroClassic
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZeroClassic
-    // Mac: ~/Library/Application Support/ZeroClassic
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\zeroclassic
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\zeroclassic
+    // Mac: ~/Library/Application Support/zeroclassic
     // Unix: ~/.zeroclassic
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "ZeroClassic";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "zeroclassic";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -462,7 +477,7 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "ZeroClassic";
+    return pathRet / "zeroclassic";
 #else
     // Unix
     return pathRet / ".zeroclassic";
@@ -477,16 +492,16 @@ static CCriticalSection csPathCached;
 
 static boost::filesystem::path ZC_GetBaseParamsDir()
 {
-    // Copied from GetDefaultDataDir and adapter for zero params.
+    // Copied from GetDefaultDataDir and adapter for zero classic params.
 
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZeroParams
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZeroParams
-    // Mac: ~/Library/Application Support/ZeroParams
-    // Unix: ~/.zero-params
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZcashParams
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZcashParams
+    // Mac: ~/Library/Application Support/ZcashParams
+    // Unix: ~/.zcash-params
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "ZeroParams";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "ZcashParams";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -498,10 +513,10 @@ static boost::filesystem::path ZC_GetBaseParamsDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "ZeroParams";
+    return pathRet / "ZcashParams";
 #else
     // Unix
-    return pathRet / ".zero-params";
+    return pathRet / ".zcash-params";
 #endif
 #endif
 }
@@ -594,7 +609,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 {
     boost::filesystem::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good())
-        throw missing_zero_conf();
+        throw missing_zcash_conf();
 
     set<string> setOptions;
     setOptions.insert("*");
@@ -891,7 +906,7 @@ void SetThreadPriority(int nPriority)
 std::string PrivacyInfo()
 {
     return "\n" +
-           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using Zero, please see <%s>."),
+           FormatParagraph(strprintf(_("In order to ensure you are adequately protecting your privacy when using ZeroClassic, please see <%s>."),
                                      "https://z.cash/support/security/")) + "\n";
 }
 
@@ -899,7 +914,7 @@ std::string LicenseInfo()
 {
     return "\n" +
            FormatParagraph(strprintf(_("Copyright (C) 2009-%i The Bitcoin Core Developers"), COPYRIGHT_YEAR)) + "\n" +
-           FormatParagraph(strprintf(_("Copyright (C) 2015-%i The Zero Developers"), COPYRIGHT_YEAR)) + "\n" +
+           FormatParagraph(strprintf(_("Copyright (C) 2015-%i The Zcash Developers"), COPYRIGHT_YEAR)) + "\n" +
            "\n" +
            FormatParagraph(_("This is experimental software.")) + "\n" +
            "\n" +

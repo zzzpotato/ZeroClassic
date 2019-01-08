@@ -6,7 +6,7 @@ set -e
 set -x
 
 BUILD_PATH="/tmp/zcbuild"
-PACKAGE_NAME="zero"
+PACKAGE_NAME="zeroclassic"
 SRC_PATH=`pwd`
 SRC_DEB=$SRC_PATH/contrib/debian
 SRC_DOC=$SRC_PATH/doc
@@ -40,7 +40,7 @@ chmod 0755 -R $BUILD_DIR/*
 # Copy binaries
 cp $SRC_PATH/src/zerod $DEB_BIN
 cp $SRC_PATH/src/zero-cli $DEB_BIN
-cp $SRC_PATH/zcutil/fetch-params.sh $DEB_BIN/zero-fetch-params
+cp $SRC_PATH/zcutil/fetch-params.sh $DEB_BIN/zerc-fetch-params
 # Copy docs
 cp $SRC_PATH/doc/release-notes/release-notes-1.0.0.md $DEB_DOC/changelog
 cp $SRC_DEB/changelog $DEB_DOC/changelog.Debian
@@ -49,7 +49,7 @@ cp -r $SRC_DEB/examples $DEB_DOC
 # Copy manpages
 cp $SRC_DOC/man/zerod.1 $DEB_MAN
 cp $SRC_DOC/man/zero-cli.1 $DEB_MAN
-cp $SRC_DOC/man/zero-fetch-params.1 $DEB_MAN
+cp $SRC_DOC/man/zerc-fetch-params.1 $DEB_MAN
 # Copy bash completion files
 cp $SRC_PATH/contrib/zerod.bash-completion $DEB_CMP/zerod
 cp $SRC_PATH/contrib/zero-cli.bash-completion $DEB_CMP/zero-cli
@@ -58,7 +58,7 @@ gzip --best -n $DEB_DOC/changelog
 gzip --best -n $DEB_DOC/changelog.Debian
 gzip --best -n $DEB_MAN/zerod.1
 gzip --best -n $DEB_MAN/zero-cli.1
-gzip --best -n $DEB_MAN/zero-fetch-params.1
+gzip --best -n $DEB_MAN/zerc-fetch-params.1
 
 cd $SRC_PATH/contrib
 

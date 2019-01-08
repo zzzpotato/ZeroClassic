@@ -15,7 +15,7 @@ from functools import wraps
 
 def main(args=sys.argv[1:]):
     """
-    Perform the final Zero release process up to the git tag.
+    Perform the final Zcash release process up to the git tag.
     """
     opts = parse_args(args)
     chdir_to_repo(opts.REPO)
@@ -217,7 +217,7 @@ def patch_version_in_files(release, releaseprev):
     patch_gitian_linux_yml(release, releaseprev)
 
 
-@phase('Patching release height for auto-senescence.')
+@phase('Patching release height for end-of-support halt.')
 def patch_release_height(releaseheight):
     rgx = re.compile(
         r'^(static const int APPROX_RELEASE_HEIGHT = )\d+(;)$',
@@ -251,7 +251,7 @@ def build():
         'Staging libgmp...',
         'Staging libsodium...',
         "Leaving directory '%s'" % depends_dir,
-        'config.status: creating libzeroconsensus.pc',
+        'config.status: creating libzcashconsensus.pc',
         "Entering directory '%s'" % src_dir,
         'httpserver.cpp',
         'torcontrol.cpp',
@@ -292,7 +292,7 @@ def gen_release_notes(release, releasefrom):
 @phase('Updating debian changelog.')
 def update_debian_changelog(release):
     os.environ['DEBEMAIL'] = 'team@z.cash'
-    os.environ['DEBFULLNAME'] = 'Zero Company'
+    os.environ['DEBFULLNAME'] = 'Zcash Company'
     sh_log(
         'debchange',
         '--newversion', release.debversion,
@@ -319,10 +319,10 @@ def chdir_to_repo(repo):
 def patch_README(release, releaseprev):
     with PathPatcher('README.md') as (inf, outf):
         firstline = inf.readline()
-        assert firstline == 'Zero {}\n'.format(releaseprev.novtext), \
+        assert firstline == 'Zcash {}\n'.format(releaseprev.novtext), \
             repr(firstline)
 
-        outf.write('Zero {}\n'.format(release.novtext))
+        outf.write('Zcash {}\n'.format(release.novtext))
         outf.write(inf.read())
 
 
@@ -350,11 +350,11 @@ def patch_gitian_linux_yml(release, releaseprev):
         outf.write(inf.readline())
 
         secondline = inf.readline()
-        assert secondline == 'name: "zero-{}"\n'.format(
+        assert secondline == 'name: "zcash-{}"\n'.format(
             releaseprev.novtext
         ), repr(secondline)
 
-        outf.write('name: "zero-{}"\n'.format(release.novtext))
+        outf.write('name: "zcash-{}"\n'.format(release.novtext))
         outf.write(inf.read())
 
 
@@ -380,7 +380,7 @@ def _patch_build_defs(release, path, pattern):
 
 
 def initialize_logging():
-    logname = './zero-make-release.log'
+    logname = './zcash-make-release.log'
     fmtr = logging.Formatter(
         '%(asctime)s L%(lineno)-4d %(levelname)-5s | %(message)s',
         '%Y-%m-%d %H:%M:%S'
@@ -398,7 +398,7 @@ def initialize_logging():
     root.setLevel(logging.DEBUG)
     root.addHandler(hout)
     root.addHandler(hpath)
-    logging.info('zero make-release.py debug log: %r', logname)
+    logging.info('zcash make-release.py debug log: %r', logname)
 
 
 def sh_out(*args):

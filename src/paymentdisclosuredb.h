@@ -1,9 +1,9 @@
-// Copyright (c) 2017 The Zero developers
+// Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef ZERO_PAYMENTDISCLOSUREDB_H
-#define ZERO_PAYMENTDISCLOSUREDB_H
+#ifndef ZCASH_PAYMENTDISCLOSUREDB_H
+#define ZCASH_PAYMENTDISCLOSUREDB_H
 
 #include "paymentdisclosure.h"
 
@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif // ZERO_PAYMENTDISCLOSUREDB_H
+#endif // ZCASH_PAYMENTDISCLOSUREDB_H

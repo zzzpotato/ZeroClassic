@@ -1,18 +1,19 @@
-// Copyright (c) 2016 The Zero developers
+// Copyright (c) 2016 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "wallet/wallet.h"
-#include "zero/JoinSplit.hpp"
-#include "zero/Note.hpp"
-#include "zero/NoteEncryption.hpp"
+#include "zcash/JoinSplit.hpp"
+#include "zcash/Note.hpp"
+#include "zcash/NoteEncryption.hpp"
 
 CWalletTx GetValidReceive(ZCJoinSplit& params,
-                          const libzero::SpendingKey& sk, CAmount value,
-                          bool randomInputs);
-libzero::Note GetNote(ZCJoinSplit& params,
-                       const libzero::SpendingKey& sk,
+                          const libzcash::SproutSpendingKey& sk, CAmount value,
+                          bool randomInputs,
+                          int32_t version = 2);
+libzcash::SproutNote GetNote(ZCJoinSplit& params,
+                       const libzcash::SproutSpendingKey& sk,
                        const CTransaction& tx, size_t js, size_t n);
 CWalletTx GetValidSpend(ZCJoinSplit& params,
-                        const libzero::SpendingKey& sk,
-                        const libzero::Note& note, CAmount value);
+                        const libzcash::SproutSpendingKey& sk,
+                        const libzcash::SproutNote& note, CAmount value);

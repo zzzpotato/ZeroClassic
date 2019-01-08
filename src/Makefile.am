@@ -1,8 +1,9 @@
 DIST_SUBDIRS = secp256k1 univalue
 
-AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(HARDENED_LDFLAGS)
-AM_CXXFLAGS = $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
+AM_LDFLAGS = $(PTHREAD_CFLAGS) $(LIBTOOL_LDFLAGS) $(SAN_LDFLAGS) $(HARDENED_LDFLAGS)
+AM_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS)
 AM_CPPFLAGS = $(HARDENED_CPPFLAGS)
+EXTRA_LIBRARIES =
 
 if EMBEDDED_LEVELDB
 LEVELDB_CPPFLAGS += -I$(srcdir)/leveldb/include
@@ -20,73 +21,71 @@ $(LIBLEVELDB) $(LIBMEMENV):
 endif
 
 BITCOIN_CONFIG_INCLUDES=-I$(builddir)/config
-BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_CFLAGS)
+BITCOIN_INCLUDES=-I$(builddir) -I$(builddir)/obj $(BDB_CPPFLAGS) $(BOOST_CPPFLAGS) $(LEVELDB_CPPFLAGS) $(CRYPTO_CFLAGS) $(SSL_CFLAGS)
 
 BITCOIN_INCLUDES += -I$(srcdir)/secp256k1/include
-BITCOIN_INCLUDES += -I$(srcdir)/snark/build/include
-BITCOIN_INCLUDES += -I$(srcdir)/snark/build/include/libsnark
+BITCOIN_INCLUDES += -I$(srcdir)/snark
+BITCOIN_INCLUDES += -I$(srcdir)/snark/libsnark
 BITCOIN_INCLUDES += -I$(srcdir)/univalue/include
 
 LIBBITCOIN_SERVER=libbitcoin_server.a
-LIBBITCOIN_WALLET=libbitcoin_wallet.a
 LIBBITCOIN_COMMON=libbitcoin_common.a
 LIBBITCOIN_CLI=libbitcoin_cli.a
 LIBBITCOIN_UTIL=libbitcoin_util.a
 LIBBITCOIN_CRYPTO=crypto/libbitcoin_crypto.a
 LIBSECP256K1=secp256k1/libsecp256k1.la
-LIBSNARK=snark/build/lib/libsnark.a
+LIBSNARK=snark/libsnark.a
 LIBUNIVALUE=univalue/libunivalue.la
-LIBZERO=libzero.a
+LIBZCASH=libzcash.a
+
+if ENABLE_ZMQ
+LIBBITCOIN_ZMQ=libbitcoin_zmq.a
+endif
+if ENABLE_PROTON
+LIBBITCOIN_PROTON=libbitcoin_proton.a
+endif
+if BUILD_BITCOIN_LIBS
+LIBZCASH_CONSENSUS=libzcashconsensus.la
+endif
+if ENABLE_WALLET
+LIBBITCOIN_WALLET=libbitcoin_wallet.a
+endif
 
 $(LIBSECP256K1): $(wildcard secp256k1/src/*) $(wildcard secp256k1/include/*)
 	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
--include collate-libsnark
-collate-libsnark: $(LIBSNARK)
-
-LIBSNARK_CXXFLAGS = -fPIC -DBINARY_OUTPUT -DNO_PT_COMPRESSION=1 -fstack-protector-all
+LIBSNARK_CXXFLAGS = $(AM_CXXFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT -DNO_PT_COMPRESSION=1 -fstack-protector-all
 LIBSNARK_CONFIG_FLAGS = CURVE=ALT_BN128 NO_PROCPS=1 NO_DOCS=1 STATIC=1 NO_SUPERCOP=1 FEATUREFLAGS=-DMONTGOMERY_OUTPUT NO_COPY_DEPINST=1 NO_COMPILE_LIBGTEST=1
 if HAVE_OPENMP
 LIBSNARK_CONFIG_FLAGS += MULTICORE=1
 endif
-LIBSNARK_OPTFLAGS =-O2
-LIBSNARK_OPTFLAGS +=-march=x86-64
+if TARGET_DARWIN
+LIBSNARK_CONFIG_FLAGS += PLATFORM=darwin
+endif
 
 $(LIBSNARK): $(wildcard snark/src/*)
-	$(AM_V_at) CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ install PREFIX=$(srcdir)/build DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="$(LIBSNARK_OPTFLAGS)"
+	$(AM_V_at) CC="$(CC)" CXX="$(CXX)" AR="$(AR)" CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="-O2 -march=x86-64"
 
 libsnark-tests: $(wildcard snark/src/*)
-	$(AM_V_at) CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ check PREFIX=$(srcdir)/build DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="$(LIBSNARK_OPTFLAGS)"
+	$(AM_V_at) CC="$(CC)" CXX="$(CXX)" AR="$(AR)" CXXFLAGS="$(LIBSNARK_CXXFLAGS)" $(MAKE) $(AM_MAKEFLAGS) -C snark/ check DEPINST="$(LIBSNARK_DEPINST)" $(LIBSNARK_CONFIG_FLAGS) OPTFLAGS="-O2 -march=x86-64"
 
-$(LIBUNIVALUE): $(wildcard univalue/lib/*)
-	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C univalue/
+$(LIBUNIVALUE): $(wildcard univalue/lib/*) $(wildcard univalue/include/*)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) -C $(@D) $(@F)
 
 # Make is not made aware of per-object dependencies to avoid limiting building parallelization
 # But to build the less dependent modules first, we manually select their order here:
-EXTRA_LIBRARIES = \
-  crypto/libbitcoin_crypto.a \
-  libbitcoin_util.a \
-  libbitcoin_common.a \
-  libbitcoin_server.a \
-  libbitcoin_cli.a \
-  libzero.a
-if ENABLE_WALLET
-BITCOIN_INCLUDES += $(BDB_CPPFLAGS)
-EXTRA_LIBRARIES += libbitcoin_wallet.a
-endif
-if ENABLE_ZMQ
-EXTRA_LIBRARIES += libbitcoin_zmq.a
-endif
-if ENABLE_PROTON
-EXTRA_LIBRARIES += libbitcoin_proton.a
-endif
+EXTRA_LIBRARIES += \
+  $(LIBBITCOIN_CRYPTO) \
+  $(LIBBITCOIN_UTIL) \
+  $(LIBBITCOIN_COMMON) \
+  $(LIBBITCOIN_SERVER) \
+  $(LIBBITCOIN_CLI) \
+  $(LIBBITCOIN_WALLET) \
+  $(LIBBITCOIN_ZMQ) \
+  $(LIBBITCOIN_PROTON) \
+  $(LIBZCASH)
 
-if BUILD_BITCOIN_LIBS
-lib_LTLIBRARIES = libzeroconsensus.la
-LIBZERO_CONSENSUS=libzeroconsensus.la
-else
-LIBZERO_CONSENSUS=
-endif
+lib_LTLIBRARIES = $(LIBZCASH_CONSENSUS)
 
 bin_PROGRAMS =
 noinst_PROGRAMS =
@@ -100,22 +99,21 @@ if BUILD_BITCOIN_UTILS
   bin_PROGRAMS += zero-cli zero-tx
 endif
 
-LIBZERO_H = \
-  zero/IncrementalMerkleTree.hpp \
-  zero/NoteEncryption.hpp \
-  zero/Address.hpp \
-  zero/JoinSplit.hpp \
-  zero/Note.hpp \
-  zero/prf.h \
-  zero/Proof.hpp \
-  zero/util.h \
-  zero/Zero.h
+LIBZCASH_H = \
+  zcash/IncrementalMerkleTree.hpp \
+  zcash/NoteEncryption.hpp \
+  zcash/Address.hpp \
+  zcash/JoinSplit.hpp \
+  zcash/Note.hpp \
+  zcash/prf.h \
+  zcash/Proof.hpp \
+  zcash/util.h \
+  zcash/Zcash.h \
+  zcash/zip32.h
 
 .PHONY: FORCE collate-libsnark check-symbols check-security
 # bitcoin core #
 BITCOIN_CORE_H = \
-	addressindex.h \
-	spentindex.h \
   addrman.h \
   alert.h \
   amount.h \
@@ -128,6 +126,7 @@ BITCOIN_CORE_H = \
   asyncrpcoperation.h \
   asyncrpcqueue.h \
   base58.h \
+  bech32.h \
   bloom.h \
   chain.h \
   chainparams.h \
@@ -145,6 +144,7 @@ BITCOIN_CORE_H = \
   compressor.h \
   consensus/consensus.h \
   consensus/params.h \
+  consensus/upgrades.h \
   consensus/validation.h \
   core_io.h \
   core_memusage.h \
@@ -154,8 +154,9 @@ BITCOIN_CORE_H = \
   httpserver.h \
   init.h \
   key.h \
+  key_io.h \
   keystore.h \
-  leveldbwrapper.h \
+  dbwrapper.h \
   limitedmap.h \
   main.h \
   memusage.h \
@@ -170,15 +171,17 @@ BITCOIN_CORE_H = \
   paymentdisclosuredb.h \
   policy/fees.h \
   pow.h \
+  prevector.h \
   primitives/block.h \
   primitives/transaction.h \
   protocol.h \
   pubkey.h \
   random.h \
   reverselock.h \
-  rpcclient.h \
-  rpcprotocol.h \
-  rpcserver.h \
+  rpc/client.h \
+  rpc/protocol.h \
+  rpc/server.h \
+  rpc/register.h \
   scheduler.h \
   script/interpreter.h \
   script/script.h \
@@ -198,6 +201,7 @@ BITCOIN_CORE_H = \
   timedata.h \
   tinyformat.h \
   torcontrol.h \
+  transaction_builder.h \
   txdb.h \
   txmempool.h \
   ui_interface.h \
@@ -210,10 +214,12 @@ BITCOIN_CORE_H = \
   utiltime.h \
   validationinterface.h \
   version.h \
+  wallet/asyncrpcoperation_mergetoaddress.h \
   wallet/asyncrpcoperation_sendmany.h \
   wallet/asyncrpcoperation_shieldcoinbase.h \
   wallet/crypter.h \
   wallet/db.h \
+  wallet/rpcwallet.h \
   wallet/wallet.h \
   wallet/wallet_ismine.h \
   wallet/walletdb.h \
@@ -246,7 +252,7 @@ libbitcoin_server_a_SOURCES = \
   httprpc.cpp \
   httpserver.cpp \
   init.cpp \
-  leveldbwrapper.cpp \
+  dbwrapper.cpp \
   main.cpp \
   merkleblock.cpp \
   metrics.cpp \
@@ -258,12 +264,12 @@ libbitcoin_server_a_SOURCES = \
   policy/fees.cpp \
   pow.cpp \
   rest.cpp \
-  rpcblockchain.cpp \
-  rpcmining.cpp \
-  rpcmisc.cpp \
-  rpcnet.cpp \
-  rpcrawtransaction.cpp \
-  rpcserver.cpp \
+  rpc/blockchain.cpp \
+  rpc/mining.cpp \
+  rpc/misc.cpp \
+  rpc/net.cpp \
+  rpc/rawtransaction.cpp \
+  rpc/server.cpp \
   script/sigcache.cpp \
   timedata.cpp \
   torcontrol.cpp \
@@ -271,11 +277,9 @@ libbitcoin_server_a_SOURCES = \
   txmempool.cpp \
   validationinterface.cpp \
   $(BITCOIN_CORE_H) \
-  $(LIBZERO_H)
+  $(LIBZCASH_H)
 
 if ENABLE_ZMQ
-LIBBITCOIN_ZMQ=libbitcoin_zmq.a
-
 libbitcoin_zmq_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(ZMQ_CFLAGS)
 libbitcoin_zmq_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_zmq_a_SOURCES = \
@@ -285,8 +289,6 @@ libbitcoin_zmq_a_SOURCES = \
 endif
 
 if ENABLE_PROTON
-LIBBITCOIN_PROTON=libbitcoin_proton.a
-
 libbitcoin_proton_a_CPPFLAGS = $(BITCOIN_INCLUDES)
 libbitcoin_proton_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_proton_a_SOURCES = \
@@ -303,6 +305,7 @@ libbitcoin_wallet_a_SOURCES = \
   utiltest.h \
   zcbenchmarks.cpp \
   zcbenchmarks.h \
+  wallet/asyncrpcoperation_mergetoaddress.cpp \
   wallet/asyncrpcoperation_sendmany.cpp \
   wallet/asyncrpcoperation_shieldcoinbase.cpp \
   wallet/crypter.cpp \
@@ -316,7 +319,7 @@ libbitcoin_wallet_a_SOURCES = \
   wallet/wallet_ismine.cpp \
   wallet/walletdb.cpp \
   $(BITCOIN_CORE_H) \
-  $(LIBZERO_H)
+  $(LIBZCASH_H)
 
 # crypto primitives library
 crypto_libbitcoin_crypto_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_CONFIG_INCLUDES)
@@ -358,13 +361,16 @@ libbitcoin_common_a_SOURCES = \
   amount.cpp \
   arith_uint256.cpp \
   base58.cpp \
+  bech32.cpp \
   chainparams.cpp \
   coins.cpp \
   compressor.cpp \
+  consensus/upgrades.cpp \
   core_read.cpp \
   core_write.cpp \
   hash.cpp \
   key.cpp \
+  key_io.cpp \
   keystore.cpp \
   netbase.cpp \
   primitives/block.cpp \
@@ -377,8 +383,9 @@ libbitcoin_common_a_SOURCES = \
   script/script_error.cpp \
   script/sign.cpp \
   script/standard.cpp \
+  transaction_builder.cpp \
   $(BITCOIN_CORE_H) \
-  $(LIBZERO_H)
+  $(LIBZCASH_H)
 
 # util: shared between all executables.
 # This library *must* be included to make sure that the glibc
@@ -393,7 +400,7 @@ libbitcoin_util_a_SOURCES = \
   compat/glibcxx_sanity.cpp \
   compat/strnlen.cpp \
   random.cpp \
-  rpcprotocol.cpp \
+  rpc/protocol.cpp \
   support/cleanse.cpp \
   sync.cpp \
   uint256.cpp \
@@ -402,7 +409,7 @@ libbitcoin_util_a_SOURCES = \
   utilstrencodings.cpp \
   utiltime.cpp \
   $(BITCOIN_CORE_H) \
-  $(LIBZERO_H)
+  $(LIBZCASH_H)
 
 if GLIBC_BACK_COMPAT
 libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
@@ -412,9 +419,9 @@ endif
 libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
 libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
-  rpcclient.cpp \
+  rpc/client.cpp \
   $(BITCOIN_CORE_H) \
-  $(LIBZERO_H)
+  $(LIBZCASH_H)
 
 nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
@@ -431,23 +438,18 @@ endif
 
 zerod_LDADD = \
   $(LIBBITCOIN_SERVER) \
+  $(LIBBITCOIN_WALLET) \
   $(LIBBITCOIN_COMMON) \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_UTIL) \
+  $(LIBBITCOIN_ZMQ) \
+  $(LIBBITCOIN_PROTON) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBZERO) \
+  $(LIBZCASH) \
   $(LIBSNARK) \
   $(LIBLEVELDB) \
   $(LIBMEMENV) \
   $(LIBSECP256K1)
-
-if ENABLE_ZMQ
-zerod_LDADD += $(LIBBITCOIN_ZMQ) $(ZMQ_LIBS)
-endif
-
-if ENABLE_WALLET
-zerod_LDADD += libbitcoin_wallet.a
-endif
 
 zerod_LDADD += \
   $(BOOST_LIBS) \
@@ -456,12 +458,10 @@ zerod_LDADD += \
   $(CRYPTO_LIBS) \
   $(EVENT_PTHREADS_LIBS) \
   $(EVENT_LIBS) \
+  $(ZMQ_LIBS) \
+  $(PROTON_LIBS) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBZERO_LIBS)
-
-if ENABLE_PROTON
-zerod_LDADD += $(LIBBITCOIN_PROTON) $(PROTON_LIBS)
-endif
+  $(LIBZCASH_LIBS)
 
 # bitcoin-cli binary #
 zero_cli_SOURCES = bitcoin-cli.cpp
@@ -481,10 +481,10 @@ zero_cli_LDADD = \
   $(SSL_LIBS) \
   $(CRYPTO_LIBS) \
   $(EVENT_LIBS) \
-  $(LIBZERO) \
+  $(LIBZCASH) \
   $(LIBSNARK) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBZERO_LIBS)
+  $(LIBZCASH_LIBS)
 #
 
 # zero-tx binary #
@@ -497,52 +497,48 @@ if TARGET_WINDOWS
 zero_tx_SOURCES += bitcoin-tx-res.rc
 endif
 
-# FIXME: Is libzero needed for zero_tx?
+# FIXME: Is libzcash needed for zero_tx?
 zero_tx_LDADD = \
   $(LIBUNIVALUE) \
   $(LIBBITCOIN_COMMON) \
   $(LIBBITCOIN_UTIL) \
   $(LIBSECP256K1) \
-  $(LIBZERO) \
+  $(LIBZCASH) \
   $(LIBSNARK) \
   $(LIBBITCOIN_CRYPTO) \
-  $(LIBZERO_LIBS)
+  $(LIBZCASH_LIBS)
 
 zero_tx_LDADD += $(BOOST_LIBS) $(CRYPTO_LIBS)
 #
 
-# zero protocol primitives #
-libzero_a_SOURCES = \
-  zero/IncrementalMerkleTree.cpp \
-  zero/NoteEncryption.cpp \
-  zero/Address.cpp \
-  zero/JoinSplit.cpp \
-  zero/Proof.cpp \
-  zero/Note.cpp \
-  zero/prf.cpp \
-  zero/util.cpp \
-  zero/circuit/commitment.tcc \
-  zero/circuit/gadget.tcc \
-  zero/circuit/merkle.tcc \
-  zero/circuit/note.tcc \
-  zero/circuit/prfs.tcc \
-  zero/circuit/utils.tcc
+# zcash protocol primitives #
+libzcash_a_SOURCES = \
+  zcash/IncrementalMerkleTree.cpp \
+  zcash/NoteEncryption.cpp \
+  zcash/Address.cpp \
+  zcash/JoinSplit.cpp \
+  zcash/Proof.cpp \
+  zcash/Note.cpp \
+  zcash/prf.cpp \
+  zcash/util.cpp \
+  zcash/zip32.cpp \
+  zcash/circuit/commitment.tcc \
+  zcash/circuit/gadget.tcc \
+  zcash/circuit/merkle.tcc \
+  zcash/circuit/note.tcc \
+  zcash/circuit/prfs.tcc \
+  zcash/circuit/utils.tcc
 
-if HAVE_OPENMP
-libzero_a_CPPFLAGS = -DMULTICORE -fopenmp
-endif
-libzero_a_CPPFLAGS := $(libzero_a_CPPFLAGS) -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) -pipe -O1 -g -Wstack-protector -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
+libzcash_a_CPPFLAGS = $(AM_CPPFLAGS) $(PIC_FLAGS) -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
+libzcash_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libzcash_a_LDFLAGS = $(AM_LDFLAGS)
 
-libzero_a_CXXFLAGS = $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
+libzcash_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
 
-libzero_a_LDFLAGS = $(HARDENED_LDFLAGS)
-
-libzero_a_CPPFLAGS += -DMONTGOMERY_OUTPUT
-
-# zeroconsensus library #
+# zcashconsensus library #
 if BUILD_BITCOIN_LIBS
-include_HEADERS = script/zeroconsensus.h
-libzeroconsensus_la_SOURCES = \
+include_HEADERS = script/zcashconsensus.h
+libzcashconsensus_la_SOURCES = \
   crypto/equihash.cpp \
   crypto/hmac_sha512.cpp \
   crypto/ripemd160.cpp \
@@ -552,20 +548,20 @@ libzeroconsensus_la_SOURCES = \
   hash.cpp \
   primitives/transaction.cpp \
   pubkey.cpp \
-  script/zeroconsensus.cpp \
+  script/zcashconsensus.cpp \
   script/interpreter.cpp \
   script/script.cpp \
   uint256.cpp \
   utilstrencodings.cpp
 
 if GLIBC_BACK_COMPAT
-  libzeroconsensus_la_SOURCES += compat/glibc_compat.cpp
+  libzcashconsensus_la_SOURCES += compat/glibc_compat.cpp
 endif
 
-libzeroconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
-libzeroconsensus_la_LIBADD = $(LIBSECP256K1)
-libzeroconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
-libzeroconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+libzcashconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+libzcashconsensus_la_LIBADD = $(LIBSECP256K1)
+libzcashconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+libzcashconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 
 endif
 #
@@ -580,6 +576,7 @@ clean-local:
 	-$(MAKE) -C leveldb clean
 	-$(MAKE) -C secp256k1 clean
 	-$(MAKE) -C snark clean
+	-$(MAKE) -C univalue clean
 	rm -f leveldb/*/*.gcno leveldb/helpers/memenv/*.gcno
 	-rm -f config.h
 
@@ -611,5 +608,3 @@ if ENABLE_TESTS
 include Makefile.test.include
 include Makefile.gtest.include
 endif
-
-include Makefile.zero.include

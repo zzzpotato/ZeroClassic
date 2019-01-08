@@ -107,7 +107,7 @@ on all categories (and give you a very large debug.log file).
 
 **testnet and regtest modes**
 
-Run with the -testnet option to run with "play zero" on the test network, if you
+Run with the -testnet option to run with "play zcash" on the test network, if you
 are testing multi-machine code that needs to operate across the internet.
 
 If you are testing something that can run on one machine, run with the -regtest option.
@@ -116,7 +116,7 @@ that run in -regtest mode.
 
 **DEBUG_LOCKORDER**
 
-Zero is a multithreaded application, and deadlocks or other multithreading bugs
+Zcash is a multithreaded application, and deadlocks or other multithreading bugs
 can be very difficult to track down. Compiling with -DDEBUG_LOCKORDER (configure
 CXXFLAGS="-DDEBUG_LOCKORDER -g") inserts run-time checks to keep track of which locks
 are held, and adds warnings to the debug.log file if inconsistencies are detected.
@@ -161,11 +161,11 @@ Threads
 
 - DumpAddresses : Dumps IP addresses of nodes to peers.dat.
 
-- ThreadFlushWalletDB : Close the wallet.zero file if it hasn't been used in 500ms.
+- ThreadFlushWalletDB : Close the wallet.dat file if it hasn't been used in 500ms.
 
 - ThreadRPCServer : Remote procedure call handler, listens on port 8232 for connections and services them.
 
-- ZeroMiner : Generates zero (if wallet is enabled).
+- ZcashMiner : Generates zcash (if wallet is enabled).
 
 - Shutdown : Does an orderly shutdown of everything.
 

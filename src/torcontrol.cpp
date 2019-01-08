@@ -1,5 +1,5 @@
 // Copyright (c) 2015-2017 The Bitcoin Core developers
-// Copyright (c) 2017 The Zero developers
+// Copyright (c) 2017 The Zcash developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -415,7 +415,7 @@ public:
     TorController(struct event_base* base, const std::string& target);
     ~TorController();
 
-    /** Get name fo file to store private key in */
+    /** Get name for file to store private key in */
     std::string GetPrivateKeyFile();
 
     /** Reconnect, after getting disconnected */
