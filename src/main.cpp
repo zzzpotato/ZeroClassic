@@ -5053,10 +5053,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         if (pfrom->nVersion < MIN_PEER_PROTO_VERSION)
         {
             // disconnect from peers older than this proto version
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrintf("peer=%d [%s] using obsolete version %i; disconnecting\n", pfrom->id, pfrom->addr.ToString(), pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
             pfrom->fDisconnect = true;
+            // active defense: should ban old proto peer
+            LogPrintf("ACTIVE DEFENSE: ban %s A.S.A.P.\n", pfrom->addr.ToString());
+			CNode::Ban(pfrom->addr);
             return false;
         }
 
@@ -5065,11 +5068,14 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         auto currentEpoch = CurrentEpoch(GetHeight(), params);
         if (pfrom->nVersion < params.vUpgrades[currentEpoch].nProtocolVersion)
         {
-            LogPrintf("peer=%d using obsolete version %i; disconnecting\n", pfrom->id, pfrom->nVersion);
+            LogPrintf("peer=%d [%s] using obsolete version %i; disconnecting\n", pfrom->id, pfrom->addr.ToString(), pfrom->nVersion);
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                             strprintf("Version must be %d or greater",
                             params.vUpgrades[currentEpoch].nProtocolVersion));
             pfrom->fDisconnect = true;
+            // active defense: should ban old proto peer
+            LogPrintf("ACTIVE DEFENSE: ban %s A.S.A.P.\n", pfrom->addr.ToString());
+			CNode::Ban(pfrom->addr);
             return false;
         }
 
