@@ -9,7 +9,11 @@ Depending on the speed of your computer and network connection, the synchronizat
 
 Announcements
 -----------------
-On September 15th, the old ZERO will fork to add block halving and dev fees. This means that a % of the Zero block reward, will go straight into the devs wallets. We've dediced to NOT SUPPORT THIS UPDATE and continue maintaining the old fashioned Zero like it should be. Free, open source, without any fee. This is why ZERO Classic (ZERC) is born.
+###### September 15th, 2018
+Tthe old ZERO will fork to add block halving and dev fees. This means that a % of the Zero block reward, will go straight into the devs wallets. We've dediced to NOT SUPPORT THIS UPDATE and continue maintaining the old fashioned Zero like it should be. Free, open source, without any fee. This is why ZERO Classic (ZERC) is born.
+
+###### January 19th, 2019
+At block 501000 ZeroClassic successfully upgraded the network. This version of ZeroClassic cryptocurrency is based on Zcash 2.0.2 source code, introducing overwinter and sapling support but keeping Zero PoW algorithm and consensus rules.
 
 What should I do if I already own some coins?
 -----------------
