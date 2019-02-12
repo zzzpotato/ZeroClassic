@@ -69,13 +69,10 @@ On a typical laptop -j3 works fine, while retaining some UI interactivity
 ### Create a ZERO Classic configuration file
 
 ```
-<<<<<<< master
 mkdir -p ~/.zeroclassic
 echo "rpcuser=YOUR_USER" > ~/.zeroclassic/zero.conf
 echo "rpcpassword=`head -c 32 /dev/urandom | base64`" >> ~/.zeroclassic/zero.conf
 echo "rpcport=23800" >> ~/.zeroclassic/zero.conf
->>>>>>> master
-
 ```
 
 ### Enable CPU mining (optional)
