@@ -530,7 +530,7 @@ UniValue getaddresses(const UniValue& params, bool fHelp)
             "\nResult:\n"
             "[\n"
             "  {\n"
-            "    \"address\": address,     (string) The bzedge address\n"
+            "    \"address\": address,     (string) The ZeroClassic address\n"
             "    \"is_change\": true,      (boolean) True if current address is change address\n"
             "    \"is_watch_only\": false  (boolean) True if current address funds are not spendable\n"
             "    \"balance\": balance      (numeric) Address balance\n"

@@ -74,12 +74,13 @@ std::string DecodeDumpString(const std::string &str) {
     return ret.str();
 }
 
+
 UniValue rescanblockchain(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
-
-        if (fHelp || params.size() < 1 || params.size() > 4)
+    
+    if (fHelp || params.size() > 1)
         throw runtime_error(
             "rescanblockchain ( startHeight )\n"
             "\nRescans the blockchain from startHeight upto the latest block, adding transactions into to your wallet.\n"
@@ -92,27 +93,27 @@ UniValue rescanblockchain(const UniValue& params, bool fHelp)
             "\nRescan the blockchain starting at height 419000\n"
             + HelpExampleCli("rescanblockchain", "419000") +
             "\nAs a JSON-RPC call\n"
-            + HelpExampleRpc("rescanblockchain", "419000")
+            + HelpExampleRpc("rescanblockchain", "419000") 
         );
 
-     LOCK2(cs_main, pwalletMain->cs_wallet);
+    LOCK2(cs_main, pwalletMain->cs_wallet);
 
-     EnsureWalletIsUnlocked();
+    EnsureWalletIsUnlocked();
 
-	// Height to rescan from
+    // Height to rescan from
     int nRescanHeight = 0;
-    if (params.size() > 3)
-        nRescanHeight = params[3].get_int();
+    if (params.size() > 0)
+        nRescanHeight = params[0].get_int();
     if (nRescanHeight < 0 || nRescanHeight > chainActive.Height()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
     }
 
-     {
+    {
         pwalletMain->MarkDirty();
         pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
     }
 
-     return true;
+    return true;
 }
 
 UniValue importprivkey(const UniValue& params, bool fHelp)
@@ -122,10 +123,10 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
     
     if (fHelp || params.size() < 1 || params.size() > 4)
         throw runtime_error(
-            "importprivkey \"zcashprivkey\" ( \"label\" rescan )\n"
+            "importprivkey \"zercprivkey\" ( \"label\" rescan )\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"zcashprivkey\"   (string, required) The private key (see dumpprivkey)\n"
+            "1. \"zercprivkey\"   (string, required) The private key (see dumpprivkey)\n"
             "2. \"label\"            (string, optional, default=\"\") An optional label\n"
             "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
             "4. startHeight          (numeric, optional, default=0) Block height to start rescan from\n"
@@ -157,7 +158,7 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
     if (params.size() > 2)
         fRescan = params[2].get_bool();
 
-	// Height to rescan from
+    // Height to rescan from
     int nRescanHeight = 0;
     if (params.size() > 3)
         nRescanHeight = params[3].get_int();
@@ -464,6 +465,8 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     return EncodeSecret(vchSecret);
 }
 
+
+
 UniValue z_exportwallet(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
@@ -474,7 +477,7 @@ UniValue z_exportwallet(const UniValue& params, bool fHelp)
             "z_exportwallet \"filename\"\n"
             "\nExports all wallet keys, for taddr and zaddr, in a human-readable format.  Overwriting an existing file is not permitted.\n"
             "\nArguments:\n"
-            "1. \"filename\"    (string, required) The filename, saved in folder set by zcashd -exportdir option\n"
+            "1. \"filename\"    (string, required) The filename, saved in folder set by zerod -exportdir option\n"
             "\nResult:\n"
             "\"path\"           (string) The full path of the destination file\n"
             "\nExamples:\n"
@@ -495,7 +498,7 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             "dumpwallet \"filename\"\n"
             "\nDumps taddr wallet keys in a human-readable format.  Overwriting an existing file is not permitted.\n"
             "\nArguments:\n"
-            "1. \"filename\"    (string, required) The filename, saved in folder set by zcashd -exportdir option\n"
+            "1. \"filename\"    (string, required) The filename, saved in folder set by zerod -exportdir option\n"
             "\nResult:\n"
             "\"path\"           (string) The full path of the destination file\n"
             "\nExamples:\n"
@@ -519,7 +522,7 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
         throw JSONRPCError(RPC_INTERNAL_ERROR, e.what());
     }
     if (exportdir.empty()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot export wallet until the zcashd -exportdir option has been set");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot export wallet until the zerod -exportdir option has been set");
     }
     std::string unclean = params[0].get_str();
     std::string clean = SanitizeFilename(unclean);
@@ -621,11 +624,11 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
     return exportfilepath.string();
 }
 
-	UniValue getrescaninfo(const UniValue& params, bool fHelp) {
+UniValue getrescaninfo(const UniValue& params, bool fHelp) {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-     if (fHelp) {
+    if (fHelp) {
         throw runtime_error(
             "getrescaninfo\n"
             "\nGet the progress of a rescan in progress. Doesn't take any arguments.\n"
@@ -636,16 +639,15 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
         );
     };
 
-     LOCK(pwalletMain->cs_rescan);
+    LOCK(pwalletMain->cs_rescan);
     UniValue obj(UniValue::VOBJ);
 
-     obj.push_back(Pair("rescanning",        (bool)pwalletMain->dRescanProgress));
+    obj.push_back(Pair("rescanning",        (bool)pwalletMain->dRescanProgress));
     if (pwalletMain->dRescanProgress != boost::none)
         obj.push_back(Pair("rescanprogress",    *(pwalletMain->dRescanProgress)));
 
-     return obj;
+    return obj;
 }
-
 
 UniValue z_importkey(const UniValue& params, bool fHelp)
 {
