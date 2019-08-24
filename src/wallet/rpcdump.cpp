@@ -79,7 +79,7 @@ UniValue rescanblockchain(const UniValue& params, bool fHelp)
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
 
-     if (fHelp || params.size() > 1)
+        if (fHelp || params.size() < 1 || params.size() > 4)
         throw runtime_error(
             "rescanblockchain ( startHeight )\n"
             "\nRescans the blockchain from startHeight upto the latest block, adding transactions into to your wallet.\n"
@@ -99,10 +99,10 @@ UniValue rescanblockchain(const UniValue& params, bool fHelp)
 
      EnsureWalletIsUnlocked();
 
-     // Height to rescan from
+	// Height to rescan from
     int nRescanHeight = 0;
-    if (params.size() > 0)
-        nRescanHeight = params[0].get_int();
+    if (params.size() > 3)
+        nRescanHeight = params[3].get_int();
     if (nRescanHeight < 0 || nRescanHeight > chainActive.Height()) {
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
     }
@@ -463,8 +463,6 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     }
     return EncodeSecret(vchSecret);
 }
-
-
 
 UniValue z_exportwallet(const UniValue& params, bool fHelp)
 {
