@@ -2400,6 +2400,10 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
     CBlockIndex* pindex = pindexStart;
 
     std::vector<uint256> myTxHashes;
+    {
+        LOCK(cs_rescan);
+        dRescanProgress = 0.0;
+    }
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -2414,8 +2418,13 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         double dProgressTip = Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), chainActive.Tip(), false);
         while (pindex)
         {
-            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0)
-                ShowProgress(_("Rescanning..."), std::max(1, std::min(99, (int)((Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart) * 100))));
+            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) {
+                LOCK(cs_rescan);
+
+                dRescanProgress = (Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart);
+                dRescanProgress = std::max(1.0, std::min(99.0, *dRescanProgress * 100));
+                ShowProgress(_("Rescanning..."), (int)(*dRescanProgress));
+            }
 
             CBlock block;
             ReadBlockFromDisk(block, pindex);
@@ -2460,6 +2469,10 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         }
 
         ShowProgress(_("Rescanning..."), 100); // hide progress dialog in GUI
+        {
+            LOCK(cs_rescan);
+            dRescanProgress = boost::none;
+        }
     }
     return ret;
 }

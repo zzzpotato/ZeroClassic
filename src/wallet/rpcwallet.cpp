@@ -530,7 +530,7 @@ UniValue getaddresses(const UniValue& params, bool fHelp)
             "\nResult:\n"
             "[\n"
             "  {\n"
-            "    \"address\": address,     (string) The bzedge address\n"
+            "    \"address\": address,     (string) The ZeroClassic address\n"
             "    \"is_change\": true,      (boolean) True if current address is change address\n"
             "    \"is_watch_only\": false  (boolean) True if current address funds are not spendable\n"
             "    \"balance\": balance      (numeric) Address balance\n"
@@ -4636,12 +4636,14 @@ UniValue z_listoperationids(const UniValue& params, bool fHelp)
 }
 
 extern UniValue dumpprivkey(const UniValue& params, bool fHelp); // in rpcdump.cpp
+extern UniValue rescanblockchain(const UniValue& params, bool fHelp);
 extern UniValue importprivkey(const UniValue& params, bool fHelp);
 extern UniValue importaddress(const UniValue& params, bool fHelp);
 extern UniValue dumpwallet(const UniValue& params, bool fHelp);
 extern UniValue importwallet(const UniValue& params, bool fHelp);
 extern UniValue z_exportkey(const UniValue& params, bool fHelp);
 extern UniValue z_importkey(const UniValue& params, bool fHelp);
+extern UniValue getrescaninfo(const UniValue& params, bool fHelp);
 extern UniValue z_exportviewingkey(const UniValue& params, bool fHelp);
 extern UniValue z_importviewingkey(const UniValue& params, bool fHelp);
 extern UniValue z_exportwallet(const UniValue& params, bool fHelp);
@@ -4660,6 +4662,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "dumpprivkey",              &dumpprivkey,              true  },
     { "wallet",             "dumpwallet",               &dumpwallet,               true  },
     { "wallet",             "encryptwallet",            &encryptwallet,            true  },
+    { "wallet",             "getrescaninfo",            &getrescaninfo,            true  },
     { "wallet",             "getaccountaddress",        &getaccountaddress,        true  },
     { "wallet",             "getaccount",               &getaccount,               true  },
     { "wallet",             "getaddressesbyaccount",    &getaddressesbyaccount,    true  },
@@ -4671,6 +4674,7 @@ static const CRPCCommand commands[] =
     { "wallet",             "gettransaction",           &gettransaction,           false },
     { "wallet",             "getunconfirmedbalance",    &getunconfirmedbalance,    false },
     { "wallet",             "getwalletinfo",            &getwalletinfo,            false },
+    { "wallet",             "rescanblockchain",         &rescanblockchain,         true  },
     { "wallet",             "importprivkey",            &importprivkey,            true  },
     { "wallet",             "importwallet",             &importwallet,             true  },
     { "wallet",             "importaddress",            &importaddress,            true  },
