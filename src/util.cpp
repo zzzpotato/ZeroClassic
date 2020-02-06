@@ -99,8 +99,8 @@ namespace boost {
 
 using namespace std;
 
-const char * const BITCOIN_CONF_FILENAME = "zcash.conf";
-const char * const BITCOIN_PID_FILENAME = "zcashd.pid";
+const char * const BITCOIN_CONF_FILENAME = "zero.conf";
+const char * const BITCOIN_PID_FILENAME = "zerod.pid";
 
 map<string, string> mapArgs;
 map<string, vector<string> > mapMultiArgs;
@@ -333,9 +333,9 @@ static bool InterpretBool(const std::string& strValue)
 
 /** Turn -noX into -X=0 (and -noX=0 into -X=1) */
 static void InterpretNegativeSetting(std::string& strKey, std::string& strValue)
-{
-    if (strKey.length()>3 && strKey[0]=='-' && strKey[1]=='n' && strKey[2]=='o')
     {
+    if (strKey.length()>3 && strKey[0]=='-' && strKey[1]=='n' && strKey[2]=='o')
+        {
         strKey = "-" + strKey.substr(3);
         strValue = InterpretBool(strValue) ? "0" : "1";
     }
@@ -434,7 +434,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "Zcash";
+    const char* pszModule = "ZeroClassic";
 #endif
     if (pex)
         return strprintf(
@@ -455,13 +455,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Zcash
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Zcash
-    // Mac: ~/Library/Application Support/Zcash
-    // Unix: ~/.zcash
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\ZeroClassic
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\ZeroClassic
+    // Mac: ~/Library/Application Support/ZeroClassic
+    // Unix: ~/.zeroclassic
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Zcash";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "ZeroClassic";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -473,10 +473,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "Zcash";
+    return pathRet / "ZeroClassic";
 #else
     // Unix
-    return pathRet / ".zcash";
+    return pathRet / ".zeroclassic";
 #endif
 #endif
 }

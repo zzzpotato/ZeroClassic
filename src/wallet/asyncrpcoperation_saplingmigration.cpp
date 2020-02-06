@@ -136,14 +136,14 @@ bool AsyncRPCOperation_saplingmigration::main_impl() {
             std::vector<JSOutPoint> vOutPoints = {sproutEntry.jsop};
             // Each migration transaction SHOULD specify an anchor at height N-10
             // for each Sprout JoinSplit description
-            // TODO: the above functionality (in comment) is not implemented in zcashd
+            // TODO: the above functionality (in comment) is not implemented in zerod
             uint256 inputAnchor;
             std::vector<boost::optional<SproutWitness>> vInputWitnesses;
             pwalletMain->GetSproutNoteWitnesses(vOutPoints, vInputWitnesses, inputAnchor);
             builder.AddSproutInput(sproutSk, sproutEntry.note, vInputWitnesses[0].get());
         }
-        // The amount chosen *includes* the 0.0001 ZEC fee for this transaction, i.e.
-        // the value of the Sapling output will be 0.0001 ZEC less.
+        // The amount chosen *includes* the 0.0001 ZERC fee for this transaction, i.e.
+        // the value of the Sapling output will be 0.0001 ZERC less.
         builder.SetFee(FEE);
         builder.AddSaplingOutput(ovkForShieldingFromTaddr(seed), migrationDestAddress, amountToSend - FEE);
         CTransaction tx = builder.Build().GetTxOrThrow();

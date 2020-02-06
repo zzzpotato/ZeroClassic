@@ -45,7 +45,7 @@ bool bSpendZeroConfChange = DEFAULT_SPEND_ZEROCONF_CHANGE;
 bool fSendFreeTransactions = DEFAULT_SEND_FREE_TRANSACTIONS;
 bool fPayAtLeastCustomFee = true;
 
-const char * DEFAULT_WALLET_DAT = "wallet.dat";
+const char * DEFAULT_WALLET_DAT = "wallet.zero";
 
 /**
  * Fees smaller than this (in satoshi) are considered zero fee (for transaction creation)
@@ -511,8 +511,8 @@ bool CWallet::Unlock(const SecureString& strWalletPassphrase)
                     this->GenerateNewSeed();
                 }
                 return true;
-            }
         }
+    }
     }
     return false;
 }
@@ -564,11 +564,11 @@ bool CWallet::ChangeWalletPassphrase(const SecureString& strOldWalletPassphrase,
 }
 
 void CWallet::ChainTipAdded(const CBlockIndex *pindex,
-                            const CBlock *pblock,
-                            SproutMerkleTree sproutTree,
+                       const CBlock *pblock,
+                       SproutMerkleTree sproutTree,
                             SaplingMerkleTree saplingTree)
 {
-    IncrementNoteWitnesses(pindex, pblock, sproutTree, saplingTree);
+        IncrementNoteWitnesses(pindex, pblock, sproutTree, saplingTree);
     UpdateSaplingNullifierNoteMapForBlock(pblock);
 }
 
@@ -587,8 +587,8 @@ void CWallet::ChainTip(const CBlockIndex *pindex,
         }
     } else {
         DecrementNoteWitnesses(pindex);
-        UpdateSaplingNullifierNoteMapForBlock(pblock);
-    }
+    UpdateSaplingNullifierNoteMapForBlock(pblock);
+}
 }
 
 void CWallet::RunSaplingMigration(int blockHeight) {
@@ -880,7 +880,7 @@ bool CWallet::Verify()
         {
             UIWarning(strprintf(_("Warning: Wallet file corrupt, data salvaged!"
                                          " Original %s saved as %s in %s; if"
-                                         " your balance or transactions are incorrect you should"
+                                     " your balance or transactions are incorrect you should"
                                          " restore from a backup."),
                 walletFile, "wallet.{timestamp}.bak", GetDataDir()));
         }
@@ -2517,6 +2517,10 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
     CBlockIndex* pindex = pindexStart;
 
     std::vector<uint256> myTxHashes;
+    {
+        LOCK(cs_rescan);
+        dRescanProgress = 0.0;
+    }
 
     {
         LOCK2(cs_main, cs_wallet);
@@ -2532,8 +2536,13 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         double dProgressTip = Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), chainActive.Tip(), false);
         while (pindex)
         {
-            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0)
-                ShowProgress(_("Rescanning..."), std::max(1, std::min(99, (int)((Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart) * 100))));
+            if (pindex->nHeight % 100 == 0 && dProgressTip - dProgressStart > 0.0) {
+                LOCK(cs_rescan);
+
+                dRescanProgress = (Checkpoints::GuessVerificationProgress(chainParams.Checkpoints(), pindex, false) - dProgressStart) / (dProgressTip - dProgressStart);
+                dRescanProgress = std::max(1.0, std::min(99.0, *dRescanProgress * 100));
+                ShowProgress(_("Rescanning..."), (int)(*dRescanProgress));
+            }
 
             CBlock block;
             ReadBlockFromDisk(block, pindex, Params().GetConsensus());
@@ -2578,6 +2587,10 @@ int CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, bool fUpdate)
         }
 
         ShowProgress(_("Rescanning..."), 100); // hide progress dialog in GUI
+        {
+            LOCK(cs_rescan);
+            dRescanProgress = boost::none;
+        }
     }
     return ret;
 }
@@ -3623,7 +3636,7 @@ bool CWallet::CommitTransaction(CWalletTx& wtxNew, boost::optional<CReserveKey&>
             CWalletDB* pwalletdb = fFileBacked ? new CWalletDB(strWalletFile,"r+") : NULL;
 
             if (reservekey) {
-                // Take key pair from key pool so it won't be used again
+            // Take key pair from key pool so it won't be used again
                 reservekey.get().KeepKey();
             }
 
@@ -4069,6 +4082,98 @@ set< set<CTxDestination> > CWallet::GetAddressGroupings()
     }
 
     return ret;
+}
+
+set<CTxDestination> CWallet::GetAddresses(bool include_watch_only)
+{
+	LOCK(cs_wallet);
+	AssertLockHeld(cs_wallet); // mapWallet
+	set<CTxDestination> t_addresses;
+
+	// address book first
+	BOOST_FOREACH(const PAIRTYPE(CTxDestination, CAddressBookData)& item, mapAddressBook)
+    {
+        const CTxDestination& address = item.first;
+        const string& account = item.second.name;
+        bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+		if (!include_watch_only && is_watch_only)
+			continue;
+        
+        if (account == "")
+            t_addresses.insert(address);
+    }
+
+	BOOST_FOREACH(PAIRTYPE(uint256, CWalletTx) walletEntry, mapWallet)
+	{
+		CWalletTx *pcoin = &walletEntry.second;
+
+		if (pcoin->vin.size() > 0)
+		{
+			bool any_mine = false;
+			// standard t-addresses from wallet tx inputs
+			BOOST_FOREACH(CTxIn txin, pcoin->vin)
+			{
+				CTxDestination address;
+				if(!IsMine(txin)) /* If this input isn't mine, ignore it */
+				   continue;
+				   
+				if(!ExtractDestination(mapWallet[txin.prevout.hash].vout[txin.prevout.n].scriptPubKey, address))
+					continue;
+				
+				bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+				if (!include_watch_only && is_watch_only)
+					continue;
+				
+				
+				t_addresses.insert(address);
+				any_mine = true;
+			}
+
+			// change addresses from wallet tx outputs
+			if (any_mine)
+			{
+			   BOOST_FOREACH(CTxOut txout, pcoin->vout)
+			   {
+					if (IsChange(txout))
+					{
+						CTxDestination txoutAddr;
+						if(!ExtractDestination(txout.scriptPubKey, txoutAddr))
+							continue;
+						
+						bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, txoutAddr) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+						if (!include_watch_only && is_watch_only)
+							continue;
+						
+						t_addresses.insert(txoutAddr);
+					}
+				   
+			   }
+			}
+		}
+
+		// remaining addresses
+		for (unsigned int i = 0; i < pcoin->vout.size(); i++)
+		{
+			if (IsMine(pcoin->vout[i]))
+			{
+				CTxDestination address;
+				if(!ExtractDestination(pcoin->vout[i].scriptPubKey, address))
+					continue;
+				
+				bool is_watch_only = (pwalletMain ? ::IsMine(*pwalletMain, address) : ISMINE_NO) & ISMINE_WATCH_ONLY;
+		
+				if (!include_watch_only && is_watch_only)
+					continue;
+				
+				t_addresses.insert(address);
+			}			
+		}
+	}
+
+	return t_addresses;
 }
 
 std::set<CTxDestination> CWallet::GetAccountAddresses(const std::string& strAccount) const

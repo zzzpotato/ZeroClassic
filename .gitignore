@@ -4,7 +4,7 @@
 src/bitcoin
 src/zerod
 src/zero-cli
-src/zerc-gtest
+src/zero-gtest
 src/zero-tx
 src/test/test_bitcoin
 
@@ -88,7 +88,7 @@ build
 *.gcda
 /*.info
 test_bitcoin.coverage/
-zerc-gtest.coverage/
+zcash-gtest.coverage/
 total.coverage/
 coverage_percent.txt
 
@@ -109,3 +109,6 @@ libzcashconsensus.pc
 
 contrib/debian/files
 contrib/debian/substvars
+
+src/fuzzing/*/output
+src/fuzz.cpp

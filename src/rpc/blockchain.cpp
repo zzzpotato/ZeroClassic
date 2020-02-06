@@ -465,14 +465,14 @@ UniValue getblockdeltas(const UniValue& params, bool fHelp)
 
     if (!enabled) {
         throw JSONRPCError(RPC_MISC_ERROR, "Error: getblockdeltas is disabled. "
-            "Run './zcash-cli help getblockdeltas' for instructions on how to enable this feature.");
+            "Run './zero-cli help getblockdeltas' for instructions on how to enable this feature.");
     }
 
     std::string strHash = params[0].get_str();
     uint256 hash(uint256S(strHash));
 
     LOCK(cs_main);
-
+    
     if (mapBlockIndex.count(hash) == 0)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Block not found");
 
@@ -530,7 +530,7 @@ UniValue getblockhashes(const UniValue& params, bool fHelp)
 
     if (!fEnableGetBlockHashes) {
         throw JSONRPCError(RPC_MISC_ERROR, "Error: getblockhashes is disabled. "
-            "Run './zcash-cli help getblockhashes' for instructions on how to enable this feature.");
+            "Run './zero-cli help getblockhashes' for instructions on how to enable this feature.");
     }
 
     unsigned int high = params[0].get_int();
@@ -823,8 +823,8 @@ UniValue gettxout(const UniValue& params, bool fHelp)
             "     \"hex\" : \"hex\",        (string) \n"
             "     \"reqSigs\" : n,          (numeric) Number of required signatures\n"
             "     \"type\" : \"pubkeyhash\", (string) The type, eg pubkeyhash\n"
-            "     \"addresses\" : [          (array of string) array of Zcash addresses\n"
-            "        \"zcashaddress\"        (string) Zcash address\n"
+            "     \"addresses\" : [          (array of string) array of ZeroClassic addresses\n"
+            "        \"zeroclassicaddress\"        (string) ZeroClassic address\n"
             "        ,...\n"
             "     ]\n"
             "  },\n"

@@ -30,7 +30,7 @@ COVERAGE_INFO = baseline_filtered_combined.info baseline.info \
   leveldb_baseline.info test_bitcoin_filtered.info total_coverage.info \
   baseline_filtered.info \
   leveldb_baseline_filtered.info test_bitcoin_coverage.info test_bitcoin.info \
-  zcash-gtest.info zcash-gtest_filtered.info zcash-gtest_coverage.info
+  zero-gtest.info zero-gtest_filtered.info zero-gtest_coverage.info
 
 dist-hook:
 	-$(MAKE) -C $(top_distdir)/src/leveldb clean

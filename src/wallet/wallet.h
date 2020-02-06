@@ -818,11 +818,11 @@ protected:
                 // transactions in which we only have transparent addresses involved.
                 if (!(wtx.mapSproutNoteData.empty() && wtx.mapSaplingNoteData.empty())) {
                     if (!walletdb.WriteTx(wtxItem.first, wtx)) {
-                        LogPrintf("SetBestChain(): Failed to write CWalletTx, aborting atomic write\n");
-                        walletdb.TxnAbort();
-                        return;
-                    }
+                    LogPrintf("SetBestChain(): Failed to write CWalletTx, aborting atomic write\n");
+                    walletdb.TxnAbort();
+                    return;
                 }
+            }
             }
             if (!walletdb.WriteWitnessCacheSize(nWitnessCacheSize)) {
                 LogPrintf("SetBestChain(): Failed to write nWitnessCacheSize, aborting atomic write\n");
@@ -869,6 +869,12 @@ public:
      *      strWalletFile (immutable after instantiation)
      */
     mutable CCriticalSection cs_wallet;
+
+    /*
+     * A lock for reporting rescan progress
+    */
+    mutable CCriticalSection cs_rescan;
+    boost::optional<double> dRescanProgress = boost::none;
 
     bool fFileBacked;
     std::string strWalletFile;
@@ -1195,6 +1201,7 @@ public:
     void GetAllReserveKeys(std::set<CKeyID>& setAddress) const;
 
     std::set< std::set<CTxDestination> > GetAddressGroupings();
+    std::set<CTxDestination> GetAddresses(bool include_watch_only = false);
     std::map<CTxDestination, CAmount> GetAddressBalances();
 
     std::set<CTxDestination> GetAccountAddresses(const std::string& strAccount) const;

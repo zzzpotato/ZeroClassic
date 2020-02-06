@@ -13,12 +13,14 @@
 #include "utiltime.h"
 #include "utilmoneystr.h"
 #include "utilstrencodings.h"
+#include "clientversion.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/synchronized_value.hpp>
 #include <string>
 #ifdef WIN32
 #include <io.h>
+#include <boost/algorithm/string.hpp>
 #else
 #include <sys/ioctl.h>
 #endif
@@ -326,7 +328,7 @@ int printMiningStatus(bool mining)
         lines++;
     } else {
         std::cout << _("You are currently not mining.") << std::endl;
-        std::cout << _("To enable mining, add 'gen=1' to your zcash.conf and restart.") << std::endl;
+        std::cout << _("To enable mining, add 'gen=1' to your zero.conf and restart.") << std::endl;
         lines += 2;
     }
     std::cout << std::endl;
@@ -490,7 +492,7 @@ bool enableVTMode()
 void ThreadShowMetricsScreen()
 {
     // Make this thread recognisable as the metrics screen thread
-    RenameThread("zcash-metrics-screen");
+    RenameThread("zeroclassic-metrics-screen");
 
     // Determine whether we should render a persistent UI or rolling metrics
     bool isTTY = isatty(STDOUT_FILENO);
@@ -506,15 +508,29 @@ void ThreadShowMetricsScreen()
         std::cout << "\e[2J";
 
         // Print art
-        std::cout << METRICS_ART << std::endl;
-        std::cout << std::endl;
+#ifdef WIN32
+		// dirty workaround, avoiding UTF8 to locale conversion routines
+		std::string met = METRICS_ART;  
+		boost::replace_all(met, "█", "\xdb");
+		boost::replace_all(met, "┌", "\xda");
+		boost::replace_all(met, "─", "\xc4");
+		boost::replace_all(met, "┐", "\xbf");
+		boost::replace_all(met, "┘", "\xd9");
+		boost::replace_all(met, "└", "\xc0");
+		boost::replace_all(met, "\n", "\r\n");
+		std::cout << met << std::endl;
+#else
+		std::cout << METRICS_ART << std::endl;
+#endif        
+        //std::cout << std::endl;
 
         // Thank you text
-        std::cout << strprintf(_("Thank you for running a %s zcashd v%s node!"), WhichNetwork(), FormatVersion(CLIENT_VERSION)) << std::endl;
+        //std::cout << _("Thank you for running a ZeroClassic node!") << std::endl;
+        std::cout << _("Thank you for running a \e[1mZero Classic\e[0m node \e[1m") << FormatSubVersion(CLIENT_NAME, CLIENT_VERSION, std::vector<std::string>()) << _("\e[0m") <<std::endl;
         std::cout << _("You're helping to strengthen the network and contributing to a social good :)") << std::endl;
 
         // Privacy notice text
-        std::cout << PrivacyInfo();
+        //std::cout << PrivacyInfo();
         std::cout << std::endl;
     }
 
@@ -563,7 +579,7 @@ void ThreadShowMetricsScreen()
             // Explain how to exit
             std::cout << "[";
 #ifdef WIN32
-            std::cout << _("'zcash-cli.exe stop' to exit");
+            std::cout << _("'zero-cli.exe stop' to exit");
 #else
             std::cout << _("Press Ctrl+C to exit");
 #endif

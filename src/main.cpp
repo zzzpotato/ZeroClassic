@@ -46,7 +46,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-# error "Zcash cannot be compiled without assertions."
+# error "ZeroClassic cannot be compiled without assertions."
 #endif
 
 #include "librustzcash.h"
@@ -108,7 +108,7 @@ static void CheckBlockIndex(const Consensus::Params& consensusParams);
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Zcash Signed Message:\n";
+const string strMessageMagic = "Zero Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -1711,42 +1711,9 @@ bool ReadBlockFromDisk(CBlock& block, const CBlockIndex* pindex, const Consensus
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
-    CAmount nSubsidy = 12.5 * COIN;
-
-    // Mining slow start
-    // The subsidy is ramped up linearly, skipping the middle payout of
-    // MAX_SUBSIDY/2 to keep the monetary curve consistent with no slow start.
-    if (nHeight < consensusParams.nSubsidySlowStartInterval / 2) {
-        nSubsidy /= consensusParams.nSubsidySlowStartInterval;
-        nSubsidy *= nHeight;
-        return nSubsidy;
-    } else if (nHeight < consensusParams.nSubsidySlowStartInterval) {
-        nSubsidy /= consensusParams.nSubsidySlowStartInterval;
-        nSubsidy *= (nHeight+1);
+    CAmount nSubsidy = 10 * COIN;
         return nSubsidy;
     }
-
-    assert(nHeight > consensusParams.SubsidySlowStartShift());
-
-    int halvings = consensusParams.Halving(nHeight);
-
-    // Force block reward to zero when right shift is undefined.
-    if (halvings >= 64)
-        return 0;
-
-    // zip208
-    // BlockSubsidy(height) :=
-    // SlowStartRate · height, if height < SlowStartInterval / 2
-    // SlowStartRate · (height + 1), if SlowStartInterval / 2 ≤ height and height < SlowStartInterval
-    // floor(MaxBlockSubsidy / 2^Halving(height)), if SlowStartInterval ≤ height and not IsBlossomActivated(height)
-    // floor(MaxBlockSubsidy / (BlossomPoWTargetSpacingRatio · 2^Halving(height))), otherwise
-    if (consensusParams.NetworkUpgradeActive(nHeight, Consensus::UPGRADE_BLOSSOM)) {
-        return (nSubsidy / Consensus::BLOSSOM_POW_TARGET_SPACING_RATIO) >> halvings;
-    } else {
-        // Subsidy is cut in half every 840,000 blocks which will occur approximately every 4 years.
-        return nSubsidy >> halvings;
-    }
-}
 
 bool IsInitialBlockDownload(const CChainParams& chainParams)
 {
@@ -1765,6 +1732,8 @@ bool IsInitialBlockDownload(const CChainParams& chainParams)
         return true;
     if (chainActive.Tip()->nChainWork < UintToArith256(chainParams.GetConsensus().nMinimumChainWork))
         return true;
+    
+    /*    
     // Don't bother checking Sprout, it is always active.
     for (int idx = Consensus::BASE_SPROUT + 1; idx < Consensus::MAX_NETWORK_UPGRADES; idx++) {
         // If we expect a particular activation block hash, and either the upgrade is not
@@ -1788,6 +1757,8 @@ bool IsInitialBlockDownload(const CChainParams& chainParams)
             return true;
         }
     }
+    */
+    
     if (chainActive.Tip()->GetBlockTime() < (GetTime() - nMaxTipAge))
         return true;
     LogPrintf("Leaving InitialBlockDownload (latching to false)\n");
@@ -1808,9 +1779,9 @@ void CheckForkWarningConditions(const CChainParams& chainParams)
     if (IsInitialBlockDownload(chainParams))
         return;
 
-    // If our best fork is no longer within 288 blocks (+/- 12 hours if no one mines it)
+    // If our best fork is no longer within 360 blocks (+/- 12 hours if no one mines it)
     // of our head, drop it
-    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 288)
+    if (pindexBestForkTip && chainActive.Height() - pindexBestForkTip->nHeight >= 360)
         pindexBestForkTip = NULL;
 
     if (pindexBestForkTip || (pindexBestInvalid && pindexBestInvalid->nChainWork > chainActive.Tip()->nChainWork + (GetBlockProof(*chainActive.Tip()) * 6)))
@@ -2409,7 +2380,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
-    RenameThread("zcash-scriptch");
+    RenameThread("zeroclassic-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -3781,6 +3752,12 @@ bool CheckBlock(const CBlock& block, CValidationState& state,
             return state.DoS(100, error("CheckBlock(): more than one coinbase"),
                              REJECT_INVALID, "bad-cb-multiple");
 
+    // If this is initial block download and "fastsync" is set, we'll skip verifying the transactions
+    if (IsInitialBlockDownload(chainparams) && GetBoolArg("-fastsync", false)) {
+        LogPrintf("fastsync: Skipping tx checks\n");
+        return true;
+    }
+
     // Check transactions
     BOOST_FOREACH(const CTransaction& tx, block.vtx)
         if (!CheckTransaction(tx, state, verifier))
@@ -3811,6 +3788,22 @@ bool ContextualCheckBlockHeader(
     assert(pindexPrev);
 
     int nHeight = pindexPrev->nHeight+1;
+
+    // If the equihash solution is set, check the size is correct for given parameters.
+    size_t nSolSize = block.nSolution.size();
+    if (nSolSize > 0) {
+        int n = consensusParams.nEquihashN;
+        int k = consensusParams.nEquihashK;
+        size_t expectedSize = (pow(2, k) * ((n/(k+1))+1)) / 8;
+        if (nSolSize != expectedSize){
+            return state.DoS(
+                100,
+                error("%s: incorrect equihash solution size %d, expected size %d for parameters (%d, %d)",
+                __func__, nSolSize, expectedSize, n, k),
+                REJECT_INVALID,
+                "bad-equihash-solution-size");
+        }
+    }
 
     // Check proof of work
     if (block.nBits != GetNextWorkRequired(pindexPrev, &block, consensusParams)) {
@@ -3871,6 +3864,29 @@ bool ContextualCheckBlock(
     const int nHeight = pindexPrev == NULL ? 0 : pindexPrev->nHeight + 1;
     const Consensus::Params& consensusParams = chainparams.GetConsensus();
 
+    // Enforce BIP 34 rule that the coinbase starts with serialized block height.
+    // In Zcash this has been enforced since launch, except that the genesis
+    // block didn't include the height in the coinbase (see Zcash protocol spec
+    // section '6.8 Bitcoin Improvement Proposals').
+    if (nHeight > 0)
+    {
+        CScript expect = CScript() << nHeight;
+        if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
+            !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
+            return state.DoS(100, error("%s: block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
+        }
+    }
+
+    // If this is initial block download and "fastsync" is set, we'll skip verifying the transactions
+    if (IsInitialBlockDownload(chainparams) && GetBoolArg("-fastsync", false)) {
+        // The method is called GetTotalBlocksEstimate, but it really returns the last checkpoint block height
+        if (fCheckpointsEnabled &&
+                nHeight < Checkpoints::GetTotalBlocksEstimate(Params().Checkpoints())) {  
+            LogPrintf("fastsync: Skipping tx checks for %d\n", nHeight);
+            return true;
+        }
+    }
+
     // Check that all transactions are finalized
     BOOST_FOREACH(const CTransaction& tx, block.vtx) {
 
@@ -3888,19 +3904,9 @@ bool ContextualCheckBlock(
         }
     }
 
-    // Enforce BIP 34 rule that the coinbase starts with serialized block height.
-    // In Zcash this has been enforced since launch, except that the genesis
-    // block didn't include the height in the coinbase (see Zcash protocol spec
-    // section '6.8 Bitcoin Improvement Proposals').
-    if (nHeight > 0)
-    {
-        CScript expect = CScript() << nHeight;
-        if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
-            !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
-            return state.DoS(100, error("%s: block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
-        }
-    }
+    
 
+    /*
     // Coinbase transaction must include an output sending 20% of
     // the block reward to a founders reward script, until the last founders
     // reward block is reached, with exception of the genesis block.
@@ -3922,6 +3928,7 @@ bool ContextualCheckBlock(
             return state.DoS(100, error("%s: founders reward missing", __func__), REJECT_INVALID, "cb-no-founders-reward");
         }
     }
+    */ // no founder reward in Zero Classic
 
     return true;
 }
@@ -5365,6 +5372,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
             pfrom->PushMessage("reject", strCommand, REJECT_OBSOLETE,
                                strprintf("Version must be %d or greater", MIN_PEER_PROTO_VERSION));
             pfrom->fDisconnect = true;
+            // active defense: should ban old proto peer
+            LogPrintf("ACTIVE DEFENSE: ban %s A.S.A.P.\n", pfrom->addr.ToString());
+			CNode::Ban(pfrom->addr);
             return false;
         }
 
@@ -5378,6 +5388,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
                             strprintf("Version must be %d or greater",
                             consensusParams.vUpgrades[currentEpoch].nProtocolVersion));
             pfrom->fDisconnect = true;
+            // active defense: should ban old proto peer
+            LogPrintf("ACTIVE DEFENSE: ban %s A.S.A.P.\n", pfrom->addr.ToString());
+			CNode::Ban(pfrom->addr);
             return false;
         }
 

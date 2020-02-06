@@ -74,25 +74,70 @@ std::string DecodeDumpString(const std::string &str) {
     return ret.str();
 }
 
+
+UniValue rescanblockchain(const UniValue& params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+    
+    if (fHelp || params.size() > 1)
+        throw runtime_error(
+            "rescanblockchain ( startHeight )\n"
+            "\nRescans the blockchain from startHeight upto the latest block, adding transactions into to your wallet.\n"
+            "\nArguments:\n"
+            "1. startHeight          (numeric, optional, default=0) Block height to start rescan from\n"
+            "\nNote: This call can take several minutes to complete. Use the \"getrescaninfo\" RPC call to check for progress.\n"
+            "\nExamples:\n"
+            "\nRescan the entire blockchain\n"
+            + HelpExampleCli("rescanblockchain", "") +
+            "\nRescan the blockchain starting at height 419000\n"
+            + HelpExampleCli("rescanblockchain", "419000") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("rescanblockchain", "419000") 
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    EnsureWalletIsUnlocked();
+
+    // Height to rescan from
+    int nRescanHeight = 0;
+    if (params.size() > 0)
+        nRescanHeight = params[0].get_int();
+    if (nRescanHeight < 0 || nRescanHeight > chainActive.Height()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
+    }
+
+    {
+        pwalletMain->MarkDirty();
+        pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
+    }
+
+    return true;
+}
+
 UniValue importprivkey(const UniValue& params, bool fHelp)
 {
     if (!EnsureWalletIsAvailable(fHelp))
         return NullUniValue;
     
-    if (fHelp || params.size() < 1 || params.size() > 3)
+    if (fHelp || params.size() < 1 || params.size() > 4)
         throw runtime_error(
-            "importprivkey \"zcashprivkey\" ( \"label\" rescan )\n"
+            "importprivkey \"zercprivkey\" ( \"label\" rescan )\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"zcashprivkey\"   (string, required) The private key (see dumpprivkey)\n"
+            "1. \"zercprivkey\"   (string, required) The private key (see dumpprivkey)\n"
             "2. \"label\"            (string, optional, default=\"\") An optional label\n"
             "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
+            "4. startHeight          (numeric, optional, default=0) Block height to start rescan from\n"
             "\nNote: This call can take minutes to complete if rescan is true.\n"
             "\nExamples:\n"
             "\nDump a private key\n"
             + HelpExampleCli("dumpprivkey", "\"myaddress\"") +
             "\nImport the private key with rescan\n"
             + HelpExampleCli("importprivkey", "\"mykey\"") +
+            "\nImport the private key with rescan starting at height 100000\n"
+            + HelpExampleCli("importprivkey", "\"mykey\" \"\" true 100000") +
             "\nImport using a label and without rescan\n"
             + HelpExampleCli("importprivkey", "\"mykey\" \"testing\" false") +
             "\nAs a JSON-RPC call\n"
@@ -115,6 +160,14 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
     bool fRescan = true;
     if (params.size() > 2)
         fRescan = params[2].get_bool();
+
+    // Height to rescan from
+    int nRescanHeight = 0;
+    if (params.size() > 3)
+        nRescanHeight = params[3].get_int();
+    if (nRescanHeight < 0 || nRescanHeight > chainActive.Height()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
+    }
 
     CKey key = DecodeSecret(strSecret);
     if (!key.IsValid()) throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key encoding");
@@ -140,7 +193,7 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
         pwalletMain->nTimeFirstKey = 1; // 0 would be considered 'no value'
 
         if (fRescan) {
-            pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+            pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
         }
     }
 
@@ -296,15 +349,14 @@ UniValue importpubkey(const UniValue& params, bool fHelp)
     ImportAddress(pubKey.GetID(), strLabel);
     ImportScript(GetScriptForRawPubKey(pubKey), strLabel, false);
 
-    if (fRescan)
-    {
-        pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
-        pwalletMain->ReacceptWalletTransactions();
-    }
+        if (fRescan)
+        {
+            pwalletMain->ScanForWalletTransactions(chainActive.Genesis(), true);
+            pwalletMain->ReacceptWalletTransactions();
+        }
 
     return NullUniValue;
 }
-
 
 UniValue z_importwallet(const UniValue& params, bool fHelp)
 {
@@ -386,7 +438,7 @@ UniValue importwallet_impl(const UniValue& params, bool fHelp, bool fImportZKeys
         if (vstr.size() < 2)
             continue;
 
-        // Let's see if the address is a valid Zcash spending key
+        // Let's see if the address is a valid ZeroClassic spending key
         if (fImportZKeys) {
             auto spendingkey = DecodeSpendingKey(vstr[0]);
             int64_t nTime = DecodeDumpTime(vstr[1]);
@@ -405,7 +457,7 @@ UniValue importwallet_impl(const UniValue& params, bool fHelp, bool fImportZKeys
                 continue;
             } else {
                 LogPrint("zrpc", "Importing detected an error: invalid spending key. Trying as a transparent key...\n");
-                // Not a valid spending key, so carry on and see if it's a Zcash style t-address.
+                // Not a valid spending key, so carry on and see if it's a ZeroClassic style t-address.
             }
         }
 
@@ -492,7 +544,7 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     std::string strAddress = params[0].get_str();
     CTxDestination dest = DecodeDestination(strAddress);
     if (!IsValidDestination(dest)) {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Zcash address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ZeroClassic address");
     }
     const CKeyID *keyID = boost::get<CKeyID>(&dest);
     if (!keyID) {
@@ -517,7 +569,7 @@ UniValue z_exportwallet(const UniValue& params, bool fHelp)
             "z_exportwallet \"filename\"\n"
             "\nExports all wallet keys, for taddr and zaddr, in a human-readable format.  Overwriting an existing file is not permitted.\n"
             "\nArguments:\n"
-            "1. \"filename\"    (string, required) The filename, saved in folder set by zcashd -exportdir option\n"
+            "1. \"filename\"    (string, required) The filename, saved in folder set by zerod -exportdir option\n"
             "\nResult:\n"
             "\"path\"           (string) The full path of the destination file\n"
             "\nExamples:\n"
@@ -538,7 +590,7 @@ UniValue dumpwallet(const UniValue& params, bool fHelp)
             "dumpwallet \"filename\"\n"
             "\nDumps taddr wallet keys in a human-readable format.  Overwriting an existing file is not permitted.\n"
             "\nArguments:\n"
-            "1. \"filename\"    (string, required) The filename, saved in folder set by zcashd -exportdir option\n"
+            "1. \"filename\"    (string, required) The filename, saved in folder set by zerod -exportdir option\n"
             "\nResult:\n"
             "\"path\"           (string) The full path of the destination file\n"
             "\nExamples:\n"
@@ -562,7 +614,7 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
         throw JSONRPCError(RPC_INTERNAL_ERROR, e.what());
     }
     if (exportdir.empty()) {
-        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot export wallet until the zcashd -exportdir option has been set");
+        throw JSONRPCError(RPC_WALLET_ERROR, "Cannot export wallet until the zerod -exportdir option has been set");
     }
     std::string unclean = params[0].get_str();
     std::string clean = SanitizeFilename(unclean);
@@ -594,7 +646,7 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
     std::sort(vKeyBirth.begin(), vKeyBirth.end());
 
     // produce output
-    file << strprintf("# Wallet dump created by Zcash %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
+    file << strprintf("# Wallet dump created by ZeroClassic %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
     file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString());
     file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
@@ -664,6 +716,30 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
     return exportfilepath.string();
 }
 
+UniValue getrescaninfo(const UniValue& params, bool fHelp) {
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+
+    if (fHelp) {
+        throw runtime_error(
+            "getrescaninfo\n"
+            "\nGet the progress of a rescan in progress. Doesn't take any arguments.\n"
+            "\nExamples:\n"
+            + HelpExampleCli("getRescanInfo", "") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("getRescanInfo", "")
+        );
+    };
+
+    LOCK(pwalletMain->cs_rescan);
+    UniValue obj(UniValue::VOBJ);
+
+    obj.push_back(Pair("rescanning",        (bool)pwalletMain->dRescanProgress));
+    if (pwalletMain->dRescanProgress != boost::none)
+        obj.push_back(Pair("rescanprogress",    *(pwalletMain->dRescanProgress)));
+
+    return obj;
+}
 
 UniValue z_importkey(const UniValue& params, bool fHelp)
 {
