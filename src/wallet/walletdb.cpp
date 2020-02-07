@@ -1147,10 +1147,10 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
                     pathDest /= wallet.strWalletFile;
 
                 try {
-                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
+                                    boost::filesystem::copy_file(pathSrc, pathDest, boost::filesystem::copy_option::overwrite_if_exists);
                     LogPrintf("copied %s to %s\n", wallet.strWalletFile, pathDest.string());
-                    return true;
-                } catch (const boost::filesystem::filesystem_error& e) {
+                                    return true;
+                                }catch (const boost::filesystem::filesystem_error& e) {
                     LogPrintf("error copying %s to %s - %s\n", wallet.strWalletFile, pathDest.string(), e.what());
                     return false;
                 }
@@ -1161,6 +1161,11 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
     return false;
 }
 
+bool CWalletDB::Compact(CDBEnv& dbenv, const std::string& strFile)
+{
+  bool fSuccess = dbenv.Compact(strFile);
+  return fSuccess;
+}
 //
 // Try to (very carefully!) recover wallet file if there is a problem.
 //
