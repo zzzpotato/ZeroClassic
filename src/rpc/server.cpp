@@ -31,6 +31,7 @@
 using namespace RPCServer;
 using namespace std;
 
+bool initWitnessesBuilt = false;
 static bool fRPCRunning = false;
 static bool fRPCInWarmup = true;
 static std::string rpcWarmupStatus("RPC server started");
