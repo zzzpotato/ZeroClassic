@@ -1415,8 +1415,7 @@ int CWallet::SaplingWitnessMinimumHeight(const uint256& nullifier, int nWitnessH
 
 int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessOnly)
 {
-    // LOCK2(cs_wallet,cs_main); // not locking cs_main because of wallet freeze
-    LOCK(cs_wallet);
+    LOCK2(cs_wallet,cs_main);
 
     int nWitnessTxIncrement = 0;
     int nWitnessTotalTxCount = mapWallet.size();
@@ -1653,8 +1652,7 @@ int CWallet::VerifyAndSetInitialWitness(const CBlockIndex* pindex, bool witnessO
 
 void CWallet::BuildWitnessCache(const CBlockIndex* pindex, bool witnessOnly)
 {
-    // LOCK2(cs_wallet, cs_main); // because of wallet freeze after 20 seconds
-    LOCK(cs_wallet);
+    LOCK2(cs_wallet, cs_main);
     
     int startHeight = VerifyAndSetInitialWitness(pindex, witnessOnly) + 1;
     
@@ -3503,7 +3501,10 @@ void CWallet::ReacceptWalletTransactions()
 
 bool CWalletTx::RelayWalletTransaction()
 {
-    assert(pwallet->GetBroadcastTransactions());
+    {
+        LOCK(pwalletMain->cs_wallet);
+        assert(pwalletMain->GetBroadcastTransactions());
+    }
     if (!IsCoinBase())
     {
         if (GetDepthInMainChain() == 0) {
