@@ -102,6 +102,7 @@ public:
     std::string GetFoundersRewardAddressAtIndex(int i) const;
     /** Enforce coinbase consensus rule in regtest mode */
     void SetRegTestCoinbaseMustBeShielded() { consensus.fCoinbaseMustBeShielded = true; }
+    const std::vector<std::pair<int64_t, int64_t>>& GetMTPExceptions() const { return vMTPExceptions; }
 protected:
     CChainParams() {}
 
@@ -126,6 +127,7 @@ protected:
     bool fTestnetToBeDeprecatedFieldRPC = false;
     CCheckpointData checkpointData;
     std::vector<std::string> vFoundersRewardAddress;
+    std::vector<std::pair<int64_t, int64_t>> vMTPExceptions;
 
     CAmount nSproutValuePoolCheckpointHeight = 0;
     CAmount nSproutValuePoolCheckpointBalance = 0;
