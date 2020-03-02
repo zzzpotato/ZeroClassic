@@ -181,8 +181,8 @@ bool CDBEnv::Compact(const std::string& strFile)
     if (mapDb[strFile] != NULL) {
         Db* pdb = mapDb[strFile];
         result = pdb->compact(NULL, NULL, NULL, pdbcompact, DB_FREE_SPACE, NULL);
-        delete pdb;
-        mapDb[strFile] = NULL;
+        // delete pdb;
+        // mapDb[strFile] = NULL;
 
       switch (result)
       {
