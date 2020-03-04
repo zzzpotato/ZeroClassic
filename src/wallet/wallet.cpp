@@ -1384,6 +1384,7 @@ void DecrementNoteWitnesses(NoteDataMap& noteDataMap, int indexHeight, int64_t n
     }
 }
 
+/*
 void CWallet::DecrementNoteWitnesses(const CBlockIndex* pindex)
 {
     LOCK(cs_wallet);
@@ -1398,6 +1399,47 @@ void CWallet::DecrementNoteWitnesses(const CBlockIndex* pindex)
     // For performance reasons, we write out the witness cache in
     // CWallet::SetBestChain() (which also ensures that overall consistency
     // of the wallet.dat is maintained).
+}
+*/
+
+void CWallet::DecrementNoteWitnesses(const CBlockIndex* pindex)
+{
+    LOCK(cs_wallet);
+    for (std::pair<const uint256, CWalletTx>& wtxItem : mapWallet) {
+
+      //Sprout
+      for (auto& item : wtxItem.second.mapSproutNoteData) {
+        auto* nd = &(item.second);
+
+        if (nd->nullifier && pwalletMain->GetSproutSpendDepth(*item.second.nullifier) <= WITNESS_CACHE_SIZE) {
+          // Only decrement witnesses that are not above the current height
+          if (nd->witnessHeight <= pindex->nHeight) {
+            if (nd->witnesses.size() > 1) {
+              // indexHeight is the height of the block being removed, so
+              // the new witness cache height is one below it.
+                nd->witnesses.pop_front();
+                nd->witnessHeight = pindex->nHeight - 1;
+            }
+          }
+        }
+      }
+      //Sapling
+      for (auto& item : wtxItem.second.mapSaplingNoteData) {
+        auto* nd = &(item.second);
+
+        if (nd->nullifier && pwalletMain->GetSaplingSpendDepth(*item.second.nullifier) <= WITNESS_CACHE_SIZE) {
+          // Only decrement witnesses that are not above the current height
+          if (nd->witnessHeight <= pindex->nHeight) {
+            if (nd->witnesses.size() > 1) {
+              // indexHeight is the height of the block being removed, so
+              // the new witness cache height is one below it.
+                nd->witnesses.pop_front();
+                nd->witnessHeight = pindex->nHeight - 1;
+            }
+          }
+        }
+      }
+    }
 }
 
 template<typename NoteData>
