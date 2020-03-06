@@ -3219,8 +3219,10 @@ void CWallet::DeleteTransactions(std::vector<uint256> &removeTxs)
         }
     }
     
-    // Miodrag: release memory back to the OS
+    // Miodrag: release memory back to the OS ... It seems malloc_trim() is not implemented in gnulib for Windows
+#ifndef WIN32
     malloc_trim(0);
+#endif
 }
 
 void CWallet::DeleteWalletTransactions(const CBlockIndex* pindex)
